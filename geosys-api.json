@@ -1,0 +1,5672 @@
+{
+  "openapi": "3.0.1", 
+  "info": {
+    "title": "API GeoSys", 
+    "description": "API permettant d'interagir avec GeoSys.", 
+    "contact": {
+      "name": "\u00c9quide de support GeoSys", 
+      "email": "nrcan.sprs.mgeosys.rncan@canada.ca"
+    }, 
+    "version": "1.0.1"
+  }, 
+  "externalDocs": {
+    "description": "Documentation de l'API GeoSys", 
+    "url": "https://wiki.cits.rncan.gc.ca/API_Geosys"
+  }, 
+  "servers": [
+    {
+      "url": "/geosys-api/v1"
+    }
+  ], 
+  "paths": {
+    "/data/extraire-data": {
+      "post": {
+        "tags": [
+          "data"
+        ], 
+        "description": "Extraction de donn\u00e9e \u00e0 sens unique. Le comportement s'apparante \u00e0 celui d'un service de clip-zip-ship. L'usager donne ses param\u00e8tres pour l'extraction (zone, couche, bd, etc.) et le service retournera un courriel contenant le lien pour t\u00e9l\u00e9charger le fichier extrait.\n\nLe fichier extrait n'est pas stock\u00e9 dans S3. Il demeure sur le serveur de FME Server un certain temps pour que l'usager puisse le t\u00e9l\u00e9charger.", 
+        "operationId": "post_data_extract", 
+        "parameters": [], 
+        "requestBody": {
+          "description": "Vous pouvez obtenir plus de d\u00e9tails \u00e0 propos des param\u00e8tres en allant sur le <a href=\"https://wiki.cits.rncan.gc.ca/API_GeoSys\" target=\"_blank\">wiki de GeoSys</a>.", 
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/data_lecture"
+              }, 
+              "examples": {
+                "Exemple": {
+                  "value": {
+                    "theme": "RFN_50K", 
+                    "format_fichier_data": "GPKG", 
+                    "type_travail": "TEST_EDITION", 
+                    "courriel": "jean-marc.prevost@canada.ca", 
+                    "clip": "NON", 
+                    "liste_classes": [
+                      "track_segment_1", 
+                      "track_junction_0"
+                    ], 
+                    "geom": "{'type':'Polygon','crs':{'type':'name','properties':{'name':'EPSG:4617'}},'coordinates':[[[-69.6731927,44.0677733],[-59.4242688,44.0677733],[-59.4242688,55.3839889],[-69.6731927,55.3839889],[-69.6731927,44.0677733]]]}", 
+                    "param_connexion": {
+                      "host": "v-she-olrik", 
+                      "port": "14452", 
+                      "dbname": "metriques_dev", 
+                      "schema": "jmp_data", 
+                      "password": "toto", 
+                      "username": "coco", 
+                      "type_conn": "PGIS"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }, 
+        "responses": {
+          "200": {
+            "description": "OK\n\nLorsque l'op\u00e9ration se d\u00e9roule avec succ\u00e8s, le service retourne un JSON contenant l'identifiant du groupe de t\u00e2che qui a effectu\u00e9 le travail d'extraction. On peut utiliser cet identifiant pour questionner la table des t\u00e2ches. Vous pouvez consulter le <a href=\"https://wiki.cits.rncan.gc.ca/T%C3%A2ches_GeoSys\" target=\"_blank\">wiki de GeoSys</a> pour de plus amples informations sur la gestion des t\u00e2ches.", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }, 
+                "examples": {
+                  "Extraction r\u00e9ussie": {
+                    "value": {
+                      "id_groupe": "ExtractionData_1611331649036_1611331650735"
+                    }
+                  }
+                }
+              }
+            }
+          }, 
+          "400": {
+            "description": "Bad Request", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/message_erreur"
+                }, 
+                "examples": {
+                  "Erreur-ThemeManquant": {
+                    "value": {
+                      "type": "about:blank", 
+                      "title": "Bad Request", 
+                      "detail": "'theme' is a required property", 
+                      "status": 400
+                    }
+                  }, 
+                  "Erreur-EPSGNull": {
+                    "value": {
+                      "exception": "<class 'swagger_server.utils.erreurs.GAPINullEPSG'>", 
+                      "message": "La g\u00e9om\u00e9trie n'a pas de projection. Son EPSG=0", 
+                      "stack": [
+                        "File 'D:\\GeoSys\\gccode\\api-rest\\swagger_server\\controllers\\data_controller.py', line 142, in 'post_data_extract'", 
+                        "File 'D:\\GeoSys\\gccode\\api-rest\\swagger_server\\controllers\\suivi_prod_controller.py', line 765, in 'post_suivi_prod_planification'", 
+                        "File 'D:\\GeoSys\\gccode\\api-rest\\swagger_server\\controllers\\suivi_prod_controller.py', line 800, in 'post_suivi_prod_unite_travail'", 
+                        "File 'D:\\GeoSys\\gccode\\api-rest\\swagger_server\\utils\\utils_postgis.py', line 35, in 'validate_geometry'", 
+                        "File 'D:\\GeoSys\\gccode\\api-rest\\swagger_server\\utils\\utils_gapi.py', line 50, in 'message_erreur'"
+                      ], 
+                      "traceback": [
+                        "swagger_server.utils.erreurs.GAPINullEPSG: La g\u00e9om\u00e9trie n'a pas de projection. Son EPSG=0", 
+                        ""
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "read"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "read"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.data_controller"
+      }
+    }, 
+    "/data/{identifiant}": {
+      "get": {
+        "tags": [
+          "data"
+        ], 
+        "description": "Permet d'extraire un fichier de donn\u00e9es selon les param\u00e8tres de la <a href=\"http://localhost:8080/geosys-api/v1/ui/#/suivi-prod/post_suivi_prod_planification\" target=\"_blank\">planification</a>. On fournit l'identifiant de l'unit\u00e9 de travail et le service fera ensuite l'extraction des donn\u00e9es dans un fichier qui sera d\u00e9pos\u00e9 dans S3.\n\n<ul>\n<li>Le nom du fichier de sortie sera constitu\u00e9 de l'identifiant de l'unit\u00e9 de travail concat\u00e9n\u00e9 avec la chaine \"_ms\" et le nombre de milliseconde du moment. On s'assure ainsi que le nom est unique.</li>\n\n<li>Le fichier portera l'extension .gpkg.zip si le format choisi est un geopackage ou .gdb.zip si le format choisi est celui de la file geodatabase.</li>\n\n<li>Le r\u00e9pertoire de destination sera construit de la fa\u00e7on suivante en utilisant les param\u00e8tres de la planification:  .../&lttheme&gt/&ltunit\u00e9 de travail&gt/gapi_extraction.</li>\n</ul>\n\nAinsi, le fichier finale et son son chemin aura l'aspect suivant: ...<theme>/<unit\u00e9 de travail>/gapi_extraction/<unit\u00e9 de travail>_ms<millisecondes>.gpkg.zip (ou .gdb.zip)", 
+        "operationId": "get_data_identifiant", 
+        "parameters": [
+          {
+            "name": "identifiant", 
+            "in": "path", 
+            "required": true, 
+            "style": "simple", 
+            "explode": false, 
+            "schema": {
+              "type": "string"
+            }
+          }, 
+          {
+            "name": "format_fichier_data", 
+            "in": "query", 
+            "description": "Format du fichier de sortie", 
+            "required": false, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "type": "string", 
+              "default": "GPKG", 
+              "enum": [
+                "GPKG", 
+                "FGDB"
+              ]
+            }
+          }, 
+          {
+            "name": "courriel", 
+            "in": "query", 
+            "description": "Courriel pour transmettre des messages", 
+            "required": false, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "type": "string", 
+              "format": "email"
+            }
+          }
+        ], 
+        "responses": {
+          "200": {
+            "description": "OK\n\nLe JSON de sortie contient l'identifiant du groupe de t\u00e2che ainsi que le chemin dans S3 o\u00f9 se trouve le fichier de sortie. On peut utiliser cet identifiant pour questionner la table des t\u00e2ches. Vous pouvez consulter le <a href=\"https://wiki.cits.rncan.gc.ca/T%C3%A2ches_GeoSys\" target=\"_blank\">wiki de GeoSys</a> pour de plus amples informations sur la gestion des t\u00e2ches.", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }, 
+                "examples": {
+                  "Extraction r\u00e9ussie": {
+                    "value": {
+                      "id_groupe": "ReservationData_JMP_TEST_007_1611348951904", 
+                      "fichier_sortie": "dev/travail/themes/RFN_50K/JMP_TEST_007/gapi_extraction/JMP_TEST_007_ms1611348951904.gpkg.zip"
+                    }
+                  }
+                }
+              }
+            }
+          }, 
+          "400": {
+            "description": "Bad Request", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object", 
+                  "properties": {}, 
+                  "x-content-type": "application/json"
+                }, 
+                "examples": {
+                  "Identifiant inconnu": {
+                    "value": {
+                      "exception": "<class 'swagger_server.utils.erreurs.GAPIRecordNotFoundIntable'>", 
+                      "message": "La valeur 'JMP_TEST_007777' n'a pas \u00e9t\u00e9 trouv\u00e9e dans la table 'unite_travail_2'", 
+                      "stack": [
+                        "File 'D:\\GeoSys\\gccode\\api-rest\\swagger_server\\controllers\\data_controller.py', line 41, in 'get_data_identifiant'", 
+                        "File 'D:\\GeoSys\\gccode\\api-rest\\swagger_server\\utils\\utils_fme.py', line 57, in 'settingBasicParametresTransactionFME'", 
+                        "File 'D:\\GeoSys\\gccode\\api-rest\\swagger_server\\controllers\\suivi_prod_controller.py', line 377, in 'get_suivi_prod_unite_travail_id'", 
+                        "File 'D:\\GeoSys\\gccode\\api-rest\\swagger_server\\utils\\utils_gapi.py', line 50, in 'message_erreur'"
+                      ], 
+                      "traceback": [
+                        "swagger_server.utils.erreurs.GAPIRecordNotFoundIntable: La valeur 'JMP_TEST_007777' n'a pas \u00e9t\u00e9 trouv\u00e9e dans la table 'unite_travail_2'", 
+                        ""
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "read", 
+              "write"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "read", 
+              "write"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.data_controller"
+      }, 
+      "put": {
+        "tags": [
+          "data"
+        ], 
+        "operationId": "put_data_identifiant", 
+        "parameters": [
+          {
+            "name": "identifiant", 
+            "in": "path", 
+            "required": true, 
+            "style": "simple", 
+            "explode": false, 
+            "schema": {
+              "type": "string"
+            }
+          }
+        ], 
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/data_edition"
+              }
+            }
+          }
+        }, 
+        "responses": {
+          "202": {
+            "description": "Accepted", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "write"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "write"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.data_controller"
+      }, 
+      "post": {
+        "tags": [
+          "data"
+        ], 
+        "description": "Permet de livrer un fichier dans la base de donn\u00e9e. Les param\u00e8tres de connexion BD, les limites de l'unit\u00e9 de travail ainsi que la liste des classes ont \u00e9t\u00e9 pr\u00e9alablement d\u00e9fini dans la <a href=\"http://localhost:8080/geosys-api/v1/ui/#/suivi-prod/post_suivi_prod_planification\" target=\"_blank\">planification</a>.\n\nLe service effacera d'abord tous les \u00e9l\u00e9ments de la liste de classes intersectant le polygone de l'unit\u00e9 de travail avant de copier le contenu du fichier dans la BD.\n\nLe param\u00e9tre md_id est optionnel. C'est l'identifiant qui permet de reli\u00e9 une donn\u00e9e \u00e0 une m\u00e9tadonn\u00e9e. Lorsqu'il contient une valeur, celle-ci sera syst\u00e9matiquement appliqu\u00e9e \u00e0 tous les \u00e9l\u00e9ments charg\u00e9s \u00e0 partir du fichier de donn\u00e9es.\n\nSelon le format de fichier choisi (GPKG ou FGDB), l'extension du fichier \u00e0 charger devra \u00eatre .gpkg.zip ou .gdb.zip", 
+        "operationId": "post_data_identifiant", 
+        "parameters": [
+          {
+            "name": "identifiant", 
+            "in": "path", 
+            "required": true, 
+            "style": "simple", 
+            "explode": false, 
+            "schema": {
+              "type": "string"
+            }
+          }
+        ], 
+        "requestBody": {
+          "description": "Ce service re\u00e7oit ses param\u00e8tres dans un \"multipart/form-data\". Le lien suivant vous donne des <a href=\"https://wiki.cits.rncan.gc.ca/Appel_des_services_REST_de_l%27API_GeoSys_en_python\" target=\"_blank\">exemples de code python</a> utilisant cette m\u00e9thode.", 
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/data_edition"
+              }
+            }
+          }
+        }, 
+        "responses": {
+          "200": {
+            "description": "OK\n\nLe JSON de sortie contient l'identifiant du groupe de t\u00e2che ainsi que l'identifiant de l'unit\u00e9 de travail. On peut utiliser l'identifiant du groupe de t\u00e2che pour questionner la table des t\u00e2ches. Vous pouvez consulter le <a href=\"https://wiki.cits.rncan.gc.ca/T%C3%A2ches_GeoSys\" target=\"_blank\">wiki de GeoSys</a> pour de plus amples informations sur la gestion des t\u00e2ches.", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }, 
+                "examples": {
+                  "Livraison r\u00e9ussie": {
+                    "value": {
+                      "id_groupe": "post_data_JMP_TEST_005_1611353273024", 
+                      "ut_id": "JMP_TEST_005"
+                    }
+                  }
+                }
+              }
+            }
+          }, 
+          "400": {
+            "description": "Bad Request", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object", 
+                  "properties": {}, 
+                  "x-content-type": "application/json"
+                }, 
+                "examples": {
+                  "Aucun fichier de donn\u00e9es \u00e0 charger": {
+                    "value": {
+                      "exception": "<class 'swagger_server.utils.erreurs.GAPINullParameter'>", 
+                      "message": "La valeur du param\u00e8tre <fichier_data> est nulle.", 
+                      "stack": [
+                        "File 'D:\\GeoSys\\gccode\\api-rest\\swagger_server\\controllers\\data_controller.py', line 213, in 'post_data_identifiant'", 
+                        "File 'D:\\GeoSys\\gccode\\api-rest\\swagger_server\\utils\\utils_gapi.py', line 50, in 'message_erreur'"
+                      ], 
+                      "traceback": [
+                        "swagger_server.utils.erreurs.GAPINullParameter: La valeur du param\u00e8tre <fichier_data> est nulle.", 
+                        ""
+                      ]
+                    }
+                  }, 
+                  "Identifiant inconnu": {
+                    "value": {
+                      "exception": "<class 'swagger_server.utils.erreurs.GAPIRecordNotFoundIntable'>", 
+                      "message": "La valeur 'JMP_TEST_005555' n'a pas \u00e9t\u00e9 trouv\u00e9e dans la table 'unite_travail_2'", 
+                      "stack": [
+                        "File 'D:\\GeoSys\\gccode\\api-rest\\swagger_server\\controllers\\data_controller.py', line 221, in 'post_data_identifiant'", 
+                        "File 'D:\\GeoSys\\gccode\\api-rest\\swagger_server\\utils\\utils_fme.py', line 57, in 'settingBasicParametresTransactionFME'", 
+                        "File 'D:\\GeoSys\\gccode\\api-rest\\swagger_server\\controllers\\suivi_prod_controller.py', line 377, in 'get_suivi_prod_unite_travail_id'", 
+                        "File 'D:\\GeoSys\\gccode\\api-rest\\swagger_server\\utils\\utils_gapi.py', line 50, in 'message_erreur'"
+                      ], 
+                      "traceback": [
+                        "swagger_server.utils.erreurs.GAPIRecordNotFoundIntable: La valeur 'JMP_TEST_005555' n'a pas \u00e9t\u00e9 trouv\u00e9e dans la table 'unite_travail_2'", 
+                        ""
+                      ]
+                    }
+                  }, 
+                  "Extension du fichier de donn\u00e9es invalide": {
+                    "value": {
+                      "exception": "<class 'swagger_server.utils.erreurs.GAPIFMEServerDataFileBadFileExtension'>", 
+                      "message": "Le fichier \u00e0 t\u00e9l\u00e9verser n'a pas l'extension attendu. Le fichier a l'extension: .gpkg alors qu'il devrait avoir l'extension: .gpkg.zip", 
+                      "stack": [
+                        "File 'D:\\GeoSys\\gccode\\api-rest\\swagger_server\\controllers\\data_controller.py', line 238, in 'post_data_identifiant'", 
+                        "File 'D:\\GeoSys\\gccode\\api-rest\\swagger_server\\utils\\utils_gapi.py', line 50, in 'message_erreur'"
+                      ], 
+                      "traceback": [
+                        "swagger_server.utils.erreurs.GAPIFMEServerDataFileBadFileExtension: Le fichier \u00e0 t\u00e9l\u00e9verser n'a pas l'extension attendu. Le fichier a l'extension: .gpkg alors qu'il devrait avoir l'extension: .gpkg.zip", 
+                        ""
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "write"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "write"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.data_controller"
+      }
+    }, 
+    "/meta/creer-md": {
+      "post": {
+        "tags": [
+          "meta"
+        ], 
+        "description": "Service int\u00e9grateur pour la cr\u00e9ation de m\u00e9tadonn\u00e9es dans GeoSys.", 
+        "operationId": "post_meta_creer_md", 
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/metadata_creation"
+              }
+            }
+          }
+        }, 
+        "responses": {
+          "200": {
+            "description": "OK", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "write"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "write"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.meta_controller"
+      }
+    }, 
+    "/meta/valider-md": {
+      "post": {
+        "tags": [
+          "meta"
+        ], 
+        "description": "Service qui valide un fichier JSON selon le sch\u00e9ma des mn\u00e9tadonn\u00e9es de GeoSys. On peut passer un fichiers JSON ou plusieurs en m\u00eame temps s'ils sont zipp\u00e9s.", 
+        "operationId": "post_meta_valider_md", 
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/metadata_validation"
+              }
+            }
+          }
+        }, 
+        "responses": {
+          "200": {
+            "description": "OK", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "read"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "read"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.meta_controller"
+      }
+    }, 
+    "/securite/login": {
+      "get": {
+        "tags": [
+          "securite"
+        ], 
+        "description": "Valide un usager et retourne un jeton (token).", 
+        "operationId": "get_securite_login", 
+        "parameters": [
+          {
+            "name": "usager", 
+            "in": "header", 
+            "required": false, 
+            "style": "simple", 
+            "explode": false, 
+            "schema": {
+              "type": "string"
+            }
+          }, 
+          {
+            "name": "mot_de_passe", 
+            "in": "header", 
+            "required": false, 
+            "style": "simple", 
+            "explode": false, 
+            "schema": {
+              "type": "string", 
+              "format": "password"
+            }
+          }, 
+          {
+            "name": "duree_token", 
+            "in": "header", 
+            "description": "Dur\u00e9e de vie du token en secondes.", 
+            "required": false, 
+            "style": "simple", 
+            "explode": false, 
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ], 
+        "responses": {
+          "200": {
+            "description": "OK", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/securite_reponse_login"
+                }, 
+                "examples": {
+                  "exTokenReturn": {
+                    "value": {
+                      "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1NzUzMDkxMzAsIm5iZiI6MTU3NTMwOTEzMSwiZXhwIjoxNTc1MzA5MTM1LCJpc3MiOiJOUkNhbiIsInNjb3BlIjoiZ2Vvc3lzOmFkbWluIGdlb3N5czp3cml0ZSBnZW9zeXM6cmVhZCJ9.eFCT0wxG06A7cWmXmLbP5__v-awiYAL_UFrqwVNbdkY", 
+                      "token_type": "Bearer", 
+                      "expired_in": 3600, 
+                      "scope": [
+                        "geosys:read", 
+                        "geosys:write"
+                      ], 
+                      "theme": [
+                        "hydro_50k", 
+                        "corint_250k"
+                      ], 
+                      "equipe": [
+                        "hydro"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }, 
+          "401": {
+            "description": "Unauthorized", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReturnValueBasicErrorMessage"
+                }
+              }
+            }
+          }
+        }, 
+        "x-openapi-router-controller": "swagger_server.controllers.securite_controller"
+      }
+    }, 
+    "/suivi-prod/codes": {
+      "get": {
+        "tags": [
+          "suivi-prod"
+        ], 
+        "description": "Obtient un enregistrement de la table suivi_prod.code.", 
+        "operationId": "get_suivi_prod_codes", 
+        "parameters": [
+          {
+            "name": "categorie", 
+            "in": "query", 
+            "required": false, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "type": "string", 
+              "enum": [
+                "SPATIAL_REPRES_TYPE_PNA", 
+                "STATUT_LOT_CL", 
+                "STATUT_ETAPE_CL", 
+                "STATUT_CONTRACTANT_CL", 
+                "THEME_CL", 
+                "TYPE_TRAVAIL_CL", 
+                "NOM_ETAPE_CL", 
+                "CLASSE_ENTITE_CL"
+              ]
+            }
+          }, 
+          {
+            "name": "nom", 
+            "in": "query", 
+            "required": false, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "type": "string"
+            }
+          }, 
+          {
+            "name": "ident", 
+            "in": "query", 
+            "required": false, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "type": "integer"
+            }
+          }, 
+          {
+            "name": "id_list_codes", 
+            "in": "query", 
+            "required": false, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ], 
+        "responses": {
+          "200": {
+            "description": "OK", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array", 
+                  "items": {
+                    "$ref": "#/components/schemas/suivi_prod-code"
+                  }, 
+                  "x-content-type": "application/json"
+                }, 
+                "examples": {
+                  "exCodes_01": {
+                    "value": [
+                      {
+                        "id": 10303, 
+                        "id_liste_code": 10300, 
+                        "nom": "CORINT_50K", 
+                        "desc_en": "Correcting 50K data in a specific region", 
+                        "desc_fr": "Correction des donn\u00e9es 50K dans une r\u00e9gion sp\u00e9cifique"
+                      }, 
+                      {
+                        "id": 10304, 
+                        "id_liste_code": 10300, 
+                        "nom": "CORINT_250K", 
+                        "desc_en": "Correcting 250K data in a specific region", 
+                        "desc_fr": "Correction des donn\u00e9es 250K dans une r\u00e9gion sp\u00e9cifique"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }, 
+          "404": {
+            "description": "Not Found", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "read"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "read"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.suivi_prod_controller"
+      }
+    }, 
+    "/suivi-prod/codes/{code}": {
+      "get": {
+        "tags": [
+          "suivi-prod"
+        ], 
+        "operationId": "get_suivi_prod_codes_code", 
+        "parameters": [
+          {
+            "name": "code", 
+            "in": "path", 
+            "required": true, 
+            "style": "simple", 
+            "explode": false, 
+            "schema": {
+              "type": "string"
+            }
+          }
+        ], 
+        "responses": {
+          "200": {
+            "description": "OK", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/suivi_prod-code"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "read"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "read"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.suivi_prod_controller"
+      }
+    }, 
+    "/suivi-prod/codelist": {
+      "get": {
+        "tags": [
+          "suivi-prod"
+        ], 
+        "description": "Obtient un enregistrement de la table suivi_prod.list_codes.", 
+        "operationId": "get_suivi_prod_code_list", 
+        "parameters": [
+          {
+            "name": "ident", 
+            "in": "query", 
+            "required": false, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "type": "integer"
+            }
+          }, 
+          {
+            "name": "nom", 
+            "in": "query", 
+            "required": false, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "type": "string"
+            }
+          }
+        ], 
+        "responses": {
+          "200": {
+            "description": "OK", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array", 
+                  "items": {
+                    "$ref": "#/components/schemas/suivi_prod-code_list"
+                  }, 
+                  "x-content-type": "application/json"
+                }
+              }
+            }
+          }, 
+          "404": {
+            "description": "Not Found", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "read"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "read"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.suivi_prod_controller"
+      }
+    }, 
+    "/suivi-prod/etape-ut": {
+      "post": {
+        "tags": [
+          "suivi-prod"
+        ], 
+        "description": "Insert a new record in etape_ut table.", 
+        "operationId": "post_suivi_prod_etape_ut", 
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/suivi_prod-etape_ut"
+              }
+            }
+          }
+        }, 
+        "responses": {
+          "201": {
+            "description": "Created", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "write"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "write"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.suivi_prod_controller"
+      }
+    }, 
+    "/suivi-prod/etape-ut/{identifiant}": {
+      "get": {
+        "tags": [
+          "suivi-prod"
+        ], 
+        "summary": "Your GET endpoint", 
+        "description": "Retrieve a record from etape_ut table.", 
+        "operationId": "get_suivi_prod_etape_ut_id", 
+        "parameters": [
+          {
+            "name": "identifiant", 
+            "in": "path", 
+            "required": true, 
+            "style": "simple", 
+            "explode": false, 
+            "schema": {
+              "type": "string"
+            }
+          }
+        ], 
+        "responses": {
+          "200": {
+            "description": "OK", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/suivi_prod-etape_ut"
+                }, 
+                "examples": {}
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "read"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "read"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.suivi_prod_controller"
+      }, 
+      "put": {
+        "tags": [
+          "suivi-prod"
+        ], 
+        "description": "Update a record in etape_ut table.", 
+        "operationId": "put_suivi_prod_etape_ut_id", 
+        "parameters": [
+          {
+            "name": "identifiant", 
+            "in": "path", 
+            "required": true, 
+            "style": "simple", 
+            "explode": false, 
+            "schema": {
+              "type": "string"
+            }
+          }
+        ], 
+        "requestBody": {
+          "description": "Only not null attributes in the JSON body will get updated. The id must not be empty.", 
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/suivi_prod-etape_ut"
+              }
+            }
+          }
+        }, 
+        "responses": {
+          "202": {
+            "description": "Accepted", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "write"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "write"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.suivi_prod_controller"
+      }, 
+      "delete": {
+        "tags": [
+          "suivi-prod"
+        ], 
+        "description": "Delete a record in etape_ut table.", 
+        "operationId": "delete_suivi_prod_etape_ut_id", 
+        "parameters": [
+          {
+            "name": "identifiant", 
+            "in": "path", 
+            "required": true, 
+            "style": "simple", 
+            "explode": false, 
+            "schema": {
+              "type": "string"
+            }
+          }
+        ], 
+        "responses": {
+          "204": {
+            "description": "No Content", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "delete"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "delete"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.suivi_prod_controller"
+      }
+    }, 
+    "/suivi-prod/featuretype": {
+      "post": {
+        "tags": [
+          "suivi-prod"
+        ], 
+        "description": "Insert feature class inside feature_type table.", 
+        "operationId": "post_suivi_prod_featuretype", 
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array", 
+                "items": {
+                  "$ref": "#/components/schemas/suivi_prod-featuretype"
+                }
+              }
+            }
+          }
+        }, 
+        "responses": {
+          "201": {
+            "description": "Created", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "write"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "write"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.suivi_prod_controller"
+      }
+    }, 
+    "/suivi-prod/featuretype/{identifiant}": {
+      "get": {
+        "tags": [
+          "suivi-prod"
+        ], 
+        "summary": "Your GET endpoint", 
+        "description": "Retreive a record from feature_type table.", 
+        "operationId": "get_suivi_prod_featuretype_id", 
+        "parameters": [
+          {
+            "name": "identifiant", 
+            "in": "path", 
+            "description": "ID from lot table", 
+            "required": true, 
+            "style": "simple", 
+            "explode": false, 
+            "schema": {
+              "type": "string"
+            }
+          }
+        ], 
+        "responses": {
+          "200": {
+            "description": "OK", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array", 
+                  "items": {
+                    "$ref": "#/components/schemas/suivi_prod-featuretype"
+                  }, 
+                  "x-content-type": "application/json"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "read"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "read"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.suivi_prod_controller"
+      }, 
+      "delete": {
+        "tags": [
+          "suivi-prod"
+        ], 
+        "description": "Delete one record from feature_type table.", 
+        "operationId": "delete_suivi_prod_featuretype_id", 
+        "parameters": [
+          {
+            "name": "identifiant", 
+            "in": "path", 
+            "description": "ID from lot table", 
+            "required": true, 
+            "style": "simple", 
+            "explode": false, 
+            "schema": {
+              "type": "string"
+            }
+          }
+        ], 
+        "responses": {
+          "204": {
+            "description": "No Content", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "delete"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "delete"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.suivi_prod_controller"
+      }
+    }, 
+    "/suivi-prod/lot": {
+      "post": {
+        "tags": [
+          "suivi-prod"
+        ], 
+        "description": "Insert a record in Lot table.", 
+        "operationId": "post_suivi_prod_lot", 
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/suivi_prod-lot-no_rel"
+              }
+            }
+          }
+        }, 
+        "responses": {
+          "201": {
+            "description": "Created", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "write"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "write"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.suivi_prod_controller"
+      }
+    }, 
+    "/suivi-prod/lot/{identifiant}": {
+      "get": {
+        "tags": [
+          "suivi-prod"
+        ], 
+        "description": "Retrieve a record from Lot table. By using the parameter full_relation=False you can retreive only the Lot record or by using full_relation=True you can retreive the Lot and all its dependencies (related table records).", 
+        "operationId": "get_suivi_prod_lot_id", 
+        "parameters": [
+          {
+            "name": "identifiant", 
+            "in": "path", 
+            "required": true, 
+            "style": "simple", 
+            "explode": false, 
+            "schema": {
+              "type": "string"
+            }
+          }, 
+          {
+            "name": "full_relation", 
+            "in": "query", 
+            "required": false, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "type": "boolean", 
+              "default": false, 
+              "enum": [
+                true, 
+                false
+              ]
+            }
+          }
+        ], 
+        "responses": {
+          "200": {
+            "description": "OK", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/inline_response_200"
+                }, 
+                "examples": {}
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "read"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "read"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.suivi_prod_controller"
+      }, 
+      "put": {
+        "tags": [
+          "suivi-prod"
+        ], 
+        "description": "Update a record in Lot table.", 
+        "operationId": "put_suivi_prod_lot_id", 
+        "parameters": [
+          {
+            "name": "identifiant", 
+            "in": "path", 
+            "required": true, 
+            "style": "simple", 
+            "explode": false, 
+            "schema": {
+              "type": "string"
+            }
+          }
+        ], 
+        "requestBody": {
+          "description": "Only not null attributes in the JSON body will get updated. The id must not be empty.", 
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/suivi_prod-lot-no_rel"
+              }
+            }
+          }
+        }, 
+        "responses": {
+          "202": {
+            "description": "Accepted", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "write"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "write"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.suivi_prod_controller"
+      }, 
+      "delete": {
+        "tags": [
+          "suivi-prod"
+        ], 
+        "description": "Delete a record in Lot table.", 
+        "operationId": "delete_suivi_prod_lot_id", 
+        "parameters": [
+          {
+            "name": "identifiant", 
+            "in": "path", 
+            "required": true, 
+            "style": "simple", 
+            "explode": false, 
+            "schema": {
+              "type": "string"
+            }
+          }, 
+          {
+            "name": "cascade", 
+            "in": "query", 
+            "required": false, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "type": "boolean", 
+              "default": false, 
+              "enum": [
+                true, 
+                false
+              ]
+            }
+          }
+        ], 
+        "responses": {
+          "204": {
+            "description": "No Content", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "delete"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "delete"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.suivi_prod_controller"
+      }
+    }, 
+    "/suivi-prod/planification": {
+      "post": {
+        "tags": [
+          "suivi-prod"
+        ], 
+        "description": "Service int\u00e9grateur permettant la cr\u00e9ation, selon un th\u00e8me, d'un lot et d'une unit\u00e9 de travail en un seul appel.", 
+        "operationId": "post_suivi_prod_planification", 
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/suivi_prod_planification"
+              }
+            }
+          }
+        }, 
+        "responses": {
+          "201": {
+            "description": "Created", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "write"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "write"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.suivi_prod_controller"
+      }
+    }, 
+    "/suivi-prod/requete-bd": {
+      "post": {
+        "tags": [
+          "suivi-prod"
+        ], 
+        "description": "Permet de lancer une requete SQL au suivi de production et recevoir un JSON ou GeoJSON.", 
+        "operationId": "post_suivi_prod_requete_bd", 
+        "parameters": [
+          {
+            "name": "output_format", 
+            "in": "query", 
+            "required": false, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "type": "string", 
+              "default": "json", 
+              "enum": [
+                "json", 
+                "geojson"
+              ]
+            }
+          }, 
+          {
+            "name": "simplifier", 
+            "in": "query", 
+            "required": false, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "type": "boolean", 
+              "default": true, 
+              "enum": [
+                true, 
+                false
+              ]
+            }
+          }
+        ], 
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/suivi_prod-requete_sql"
+              }
+            }
+          }
+        }, 
+        "responses": {
+          "200": {
+            "description": "OK", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object", 
+                  "properties": {}, 
+                  "example": {}, 
+                  "x-content-type": "application/json"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "read"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "read"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.suivi_prod_controller"
+      }
+    }, 
+    "/suivi-prod/type-travail/theme/{theme}": {
+      "get": {
+        "tags": [
+          "suivi-prod"
+        ], 
+        "summary": "Your GET endpoint", 
+        "description": "Retourne une liste des travaux disponibles pour un th\u00e8me donn\u00e9.", 
+        "operationId": "get_suivi_prod_type_travail_theme", 
+        "parameters": [
+          {
+            "name": "theme", 
+            "in": "path", 
+            "required": true, 
+            "style": "simple", 
+            "explode": false, 
+            "schema": {
+              "type": "string"
+            }
+          }
+        ], 
+        "responses": {
+          "200": {
+            "description": "OK", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array", 
+                  "items": {
+                    "$ref": "#/components/schemas/suivi_prod-code"
+                  }, 
+                  "x-content-type": "application/json"
+                }, 
+                "examples": {
+                  "exTypeTravailTheme_01": {
+                    "value": [
+                      {
+                        "id": 10801, 
+                        "id_liste_code": 10800, 
+                        "nom": "RFN_50K_CREATION", 
+                        "desc_en": "id aute do commodo", 
+                        "desc_fr": "culpa anim"
+                      }, 
+                      {
+                        "id": 10802, 
+                        "id_liste_code": 10800, 
+                        "nom": "RFN_50K_MAJ", 
+                        "desc_en": "fugiat", 
+                        "desc_fr": "fugiat"
+                      }, 
+                      {
+                        "id": 10803, 
+                        "id_liste_code": 10800, 
+                        "nom": "RFN_50K_CORRECTION", 
+                        "desc_en": "et dolore eiusmod nostrud", 
+                        "desc_fr": "aute dolor"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "read"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "read"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.suivi_prod_controller"
+      }
+    }, 
+    "/suivi-prod/unite-travail": {
+      "post": {
+        "tags": [
+          "suivi-prod"
+        ], 
+        "description": "Insert a new record in unite_travail_2", 
+        "operationId": "post_suivi_prod_unite_travail", 
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/suivi_prod-unite_travail_2-postbody"
+              }
+            }
+          }
+        }, 
+        "responses": {
+          "201": {
+            "description": "Created", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "write"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "write"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.suivi_prod_controller"
+      }
+    }, 
+    "/suivi-prod/unite-travail/id/theme/actif/{theme}": {
+      "get": {
+        "tags": [
+          "suivi-prod"
+        ], 
+        "summary": "Your GET endpoint", 
+        "description": "Retourne une liste de ID des unit\u00e9s de travail active selon un th\u00e8me.", 
+        "operationId": "get_suivi_prod_unite_travail_listeid_theme_actif", 
+        "parameters": [
+          {
+            "name": "theme", 
+            "in": "path", 
+            "required": true, 
+            "style": "simple", 
+            "explode": false, 
+            "schema": {
+              "type": "string"
+            }
+          }
+        ], 
+        "responses": {
+          "200": {
+            "description": "OK", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_liste_valeur"
+                }, 
+                "examples": {
+                  "exListeIDThemeActif_01": {
+                    "value": {
+                      "value": [
+                        "corint_50k_123465453", 
+                        "corint_50k_555555555", 
+                        "corint_50k_777777777"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "read"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "read"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.suivi_prod_controller"
+      }
+    }, 
+    "/suivi-prod/unite-travail/{identifiant}": {
+      "get": {
+        "tags": [
+          "suivi-prod"
+        ], 
+        "description": "Retourne un enregistrement de la table suivi-prod.unite_travail_2. En utilisant le param\u00e8tre full_relation=False vous obtener uniquement l'enregistrement de la table suivi-prod.unite_travail_2. En utilisant le param\u00e8tre full_relation=True vous obtenez l'enregistrement de la table suivi-prod.unite_travail_2 ainsi que toutes ses d\u00e9pendances (l'information provenant des tables en relation).", 
+        "operationId": "get_suivi_prod_unite_travail_id", 
+        "parameters": [
+          {
+            "name": "identifiant", 
+            "in": "path", 
+            "description": "Work area id", 
+            "required": true, 
+            "style": "simple", 
+            "explode": false, 
+            "schema": {
+              "type": "string"
+            }
+          }, 
+          {
+            "name": "full_relation", 
+            "in": "query", 
+            "required": false, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "type": "boolean", 
+              "default": false, 
+              "enum": [
+                true, 
+                false
+              ]
+            }
+          }
+        ], 
+        "responses": {
+          "200": {
+            "description": "OK", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/inline_response_200_1"
+                }
+              }
+            }
+          }, 
+          "404": {
+            "description": "Not Found", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }, 
+          "500": {
+            "description": "Internal Server Error", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "read"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "read"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.suivi_prod_controller"
+      }, 
+      "put": {
+        "tags": [
+          "suivi-prod"
+        ], 
+        "description": "Update a record in unite_travail_2 table.", 
+        "operationId": "put_suivi_prod_unite_travail_id", 
+        "parameters": [
+          {
+            "name": "identifiant", 
+            "in": "path", 
+            "description": "Work area id", 
+            "required": true, 
+            "style": "simple", 
+            "explode": false, 
+            "schema": {
+              "type": "string"
+            }
+          }
+        ], 
+        "requestBody": {
+          "description": "Seulement les attributs non-null seront mise \u00e0 jour. Le ID doit toujours avoir une valeur car c'est la clef de recherche.", 
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/suivi_prod-unite_travail_2-no_rel"
+              }
+            }
+          }
+        }, 
+        "responses": {
+          "202": {
+            "description": "Accepted", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "write"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "write"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.suivi_prod_controller"
+      }, 
+      "delete": {
+        "tags": [
+          "suivi-prod"
+        ], 
+        "description": "Delete a record in table unite_travail_2.", 
+        "operationId": "delete_suivi_prod_unite_travail_id", 
+        "parameters": [
+          {
+            "name": "identifiant", 
+            "in": "path", 
+            "description": "Work area id", 
+            "required": true, 
+            "style": "simple", 
+            "explode": false, 
+            "schema": {
+              "type": "string"
+            }
+          }, 
+          {
+            "name": "cascade", 
+            "in": "query", 
+            "required": false, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "type": "boolean", 
+              "default": false, 
+              "enum": [
+                true, 
+                false
+              ]
+            }
+          }
+        ], 
+        "responses": {
+          "204": {
+            "description": "No Content", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "delete"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "delete"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.suivi_prod_controller"
+      }
+    }, 
+    "/systeme/contenants": {
+      "post": {
+        "tags": [
+          "systeme"
+        ], 
+        "description": "Cr\u00e9ation d'un contenant (bucket) pour le stockage de fichiers.", 
+        "operationId": "post_systeme_contenants", 
+        "parameters": [
+          {
+            "name": "contenant_url", 
+            "in": "query", 
+            "description": "URL identifiant le contenant.", 
+            "required": true, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "type": "string"
+            }
+          }
+        ], 
+        "responses": {
+          "201": {
+            "description": "Created", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "write"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "write"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.systeme_controller"
+      }, 
+      "delete": {
+        "tags": [
+          "systeme"
+        ], 
+        "description": "Efface un contenant (bucket) et les fichiers qu'il contient.", 
+        "operationId": "delete_systeme_contenants", 
+        "parameters": [
+          {
+            "name": "contenant_url", 
+            "in": "query", 
+            "description": "URL identifiant le contenant.", 
+            "required": true, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "type": "string"
+            }
+          }
+        ], 
+        "responses": {
+          "204": {
+            "description": "No Content", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }, 
+          "400": {
+            "description": "Bad Request", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }, 
+          "401": {
+            "description": "Unauthorized", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "delete"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "delete"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.systeme_controller"
+      }
+    }, 
+    "/systeme/envs": {
+      "get": {
+        "tags": [
+          "systeme"
+        ], 
+        "description": "Retourne la liste des environnements existant dans le syst\u00e8me Geosys.", 
+        "operationId": "get_systeme_envs", 
+        "responses": {
+          "200": {
+            "description": "OK", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/systeme_envs"
+                }, 
+                "examples": {
+                  "exSystemeEnv_01": {
+                    "value": {
+                      "envs": [
+                        {
+                          "env": "PRO", 
+                          "url": "http://127.0.0.1:4010/pro/"
+                        }, 
+                        {
+                          "env": "TST", 
+                          "url": "http://127.0.0.1:4010/tst/"
+                        }, 
+                        {
+                          "env": "DEV", 
+                          "url": "http://127.0.0.1:4010/dev/"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "read"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "read"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.systeme_controller"
+      }
+    }, 
+    "/systeme/fichiers": {
+      "get": {
+        "tags": [
+          "systeme"
+        ], 
+        "description": "R\u00e9cup\u00e8re un fichier", 
+        "operationId": "get_systeme_fichier", 
+        "parameters": [
+          {
+            "name": "fichier_url", 
+            "in": "query", 
+            "description": "Chemin complet du fichier.", 
+            "required": true, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "type": "string"
+            }
+          }
+        ], 
+        "responses": {
+          "200": {
+            "description": "OK", 
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string", 
+                  "description": "Downloaded file as a stream of octet.", 
+                  "format": "binary", 
+                  "x-content-type": "application/octet-stream"
+                }, 
+                "examples": {}
+              }
+            }
+          }, 
+          "401": {
+            "description": "Unauthorized", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }, 
+          "404": {
+            "description": "Not Found", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "read"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "read"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.systeme_controller"
+      }, 
+      "post": {
+        "tags": [
+          "systeme"
+        ], 
+        "description": "T\u00e9l\u00e9verser un fichier.", 
+        "operationId": "post_systeme_fichier", 
+        "parameters": [
+          {
+            "name": "contenant_url", 
+            "in": "query", 
+            "description": "Chemin complet du fichier.", 
+            "required": true, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "type": "string"
+            }
+          }
+        ], 
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/systeme_fichier"
+              }
+            }
+          }
+        }, 
+        "responses": {
+          "201": {
+            "description": "Created", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }, 
+          "401": {
+            "description": "Unauthorized", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "write"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "write"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.systeme_controller"
+      }, 
+      "delete": {
+        "tags": [
+          "systeme"
+        ], 
+        "description": "Efface un fichier.", 
+        "operationId": "delete_systeme_fichier", 
+        "parameters": [
+          {
+            "name": "fichier_url", 
+            "in": "query", 
+            "description": "Chemin complet du fichier.", 
+            "required": true, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "type": "string"
+            }
+          }
+        ], 
+        "responses": {
+          "204": {
+            "description": "No Content", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }, 
+          "401": {
+            "description": "Unauthorized", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReturnValueBasicErrorMessage"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "delete"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "delete"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.systeme_controller"
+      }
+    }, 
+    "/systeme/liste-contenants-fichiers": {
+      "get": {
+        "tags": [
+          "systeme"
+        ], 
+        "description": "Renvoi la liste des fichiers et r\u00e9pertoires existants sous un URL donn\u00e9 dans Amazon S3.", 
+        "operationId": "get_systeme_liste_contenants_fichiers", 
+        "parameters": [
+          {
+            "name": "contenant_url", 
+            "in": "query", 
+            "required": false, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "type": "string"
+            }
+          }
+        ], 
+        "responses": {
+          "200": {
+            "description": "OK", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/systeme_liste_contenants_fichiers"
+                }, 
+                "examples": {
+                  "exListeContenantsFichiers_01": {
+                    "value": {
+                      "list_file": [
+                        {
+                          "name": "test.py", 
+                          "size": 15638, 
+                          "last_modified": "2020/10/02"
+                        }, 
+                        {
+                          "name": "hello1.ts", 
+                          "size": "2845", 
+                          "last_modified": "2019/11/05"
+                        }
+                      ], 
+                      "list_folder": [
+                        {
+                          "name": "first", 
+                          "last_modified": "2019/01/05"
+                        }, 
+                        {
+                          "name": "second", 
+                          "last_modified": "2020/02/15"
+                        }, 
+                        {
+                          "name": "third", 
+                          "last_modified": "2019/09/11"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "read"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "read"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.systeme_controller"
+      }
+    }, 
+    "/systeme/ressources-recherche": {
+      "post": {
+        "tags": [
+          "systeme"
+        ], 
+        "summary": "Extraire des ressources \u00e0 partir de chemins \"xmlpath\" dans un fichier json ou xml", 
+        "description": "Retourne une ou plusieurs ressources (param\u00e8tre ou un groupe de param\u00e8tres) lues dans des fichiers JSON ou XML localis\u00e9s dans le bucket S3 de GeoSys. La recherche des chemins du style \"xmlpath\" se fait de fa\u00e7on s\u00e9quentielle dans chaque fichier sp\u00e9cifi\u00e9 (dans l'ordre). La premi\u00e8re occurrence de la ressource dans la liste des fichiers est retenue. Si la valeur du chemin sp\u00e9cifi\u00e9 contient plusieurs \u00e9l\u00e9ments, ils sont tous retourn\u00e9s sous la forme d'un objet JSON.\n\nSi les valeurs r\u00e9cup\u00e9r\u00e9es contiennent des informations crypt\u00e9es dans des \u00e9tiquettes de la forme [gsh:<informations_crypt\u00e9es>], il est possible de les d\u00e9crypter au moment de l'extraction en sp\u00e9cifiant la cl\u00e9 gsh.\n\nL'utilisateur doit avoir un droit d'acc\u00e8s au dossier des fichiers pour extraire les ressources. \n\n", 
+        "operationId": "post_systeme_ressources_recherche", 
+        "parameters": [
+          {
+            "name": "chercher_geosys", 
+            "in": "query", 
+            "description": "Fanion indiquant de chercher les ressources dans le fichier de ressource de GeoSys si elles sont introuvables dans les fichiers sp\u00e9cifi\u00e9s", 
+            "required": false, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "type": "boolean", 
+              "default": false, 
+              "enum": [
+                true, 
+                false
+              ]
+            }
+          }
+        ], 
+        "requestBody": {
+          "description": "Un objet JSON contenant une liste des fichiers \u00e0 lire ainsi qu'une liste de chemins \u00e0 chercher dans ceux-ci. Il faut sp\u00e9cifier le chemin complet des fichiers. Les chemins et fichiers peuvent avoir ou non des barres obliques au d\u00e9but et \u00e0 la fin.", 
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/systeme_ress_requete"
+              }, 
+              "examples": {
+                "Requ\u00eate simple": {
+                  "value": {
+                    "fichiers": [
+                      "dev/ressources/general/ressources_CCCOT.json"
+                    ], 
+                    "chemin_recherche": [
+                      "/ressources/pro/applications/cits_fme"
+                    ]
+                  }
+                }, 
+                "Requ\u00eate avec fichiers multiples": {
+                  "value": {
+                    "fichiers": [
+                      "dev/ressources/themes/HYDRO_50K/ress_01.json", 
+                      "dev/ressources/themes/HYDRO_50K/ress_02.json", 
+                      "dev/ressources/themes/HYDRO_50K/ress_03.json", 
+                      "/dev/ressources/general/ressources_CCCOT.json"
+                    ], 
+                    "chemin_recherche": [
+                      "/ressources/pro/applications/cits_fme"
+                    ]
+                  }
+                }, 
+                "Requ\u00eate avec chemins multiples": {
+                  "value": {
+                    "fichiers": [
+                      "/dev/ressources/general/ressources_CCCOT.json"
+                    ], 
+                    "chemin_recherche": [
+                      "/ressources/pro/applications/cits_fme", 
+                      "ressources/pro/applications/saxon_java_path"
+                    ]
+                  }
+                }, 
+                "Recherche dans les ressources GeoSys seulement (param\u00e8tre \"chercher_geosys=True\")": {
+                  "value": {
+                    "fichiers": [], 
+                    "chemin_recherche": [
+                      "/ressources/pro/applications/cits_fme", 
+                      "ressources/pro/applications/saxon_java_path"
+                    ]
+                  }
+                }, 
+                "Requ\u00eate avec d\u00e9cryptage gsh": {
+                  "value": {
+                    "fichiers": [
+                      "dev/ressources/general/ressources_CCCOT.json"
+                    ], 
+                    "chemin_recherche": [
+                      "/ressources/pro/database/password"
+                    ], 
+                    "cle_gsh": "gAAAAABfM9Hv7XEEysFfYyWU32VpdDlJRkef-6cikXwvbtDovmFRI2lDV2-qlm_d7IV6YIbguatR1-MCN-RmCVtZBajBW5y2Bg=="
+                  }
+                }
+              }
+            }
+          }
+        }, 
+        "responses": {
+          "200": {
+            "description": "OK", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/systeme_ress_retour"
+                }, 
+                "examples": {
+                  "R\u00e9sultat simple (cha\u00eene)": {
+                    "value": {
+                      "/ressources/pro/applications/cits_fme": {
+                        "source": "dev/ressources/general/ressources_CCCOT.json", 
+                        "value": "CALL \\\\dfscitsh\\cits\\EnvCits\\applications\\cits\\pro\\bat\\fme.bat %FME2019%"
+                      }
+                    }
+                  }, 
+                  "R\u00e9sultat multiple (cha\u00eene)": {
+                    "value": {
+                      "/ressources/pro/applications/cits_fme": {
+                        "source": "/dev/ressources/general/ressources_CCCOT.json", 
+                        "value": "CALL \\\\dfscitsh\\cits\\EnvCits\\applications\\cits\\pro\\bat\\fme.bat %FME2019%"
+                      }, 
+                      "ressources/pro/applications/saxon_java_path": {
+                        "source": "/dev/ressources/general/ressources_CCCOT.json", 
+                        "value": "\\\\dfscitsh.cits.rncan.gc.ca\\cits\\EnvCits\\java\\pro\\Saxon-EE\\saxon9ee.jar"
+                      }
+                    }
+                  }, 
+                  "R\u00e9sultat (objet JSON)": {
+                    "value": {
+                      "/ressources/pro/connexion_bdg_prod": {
+                        "source": "/dev/ressources/general/ressources_CCCOT.json", 
+                        "value": {
+                          "username": "bdg", 
+                          "connexion_file": "\\\\dfscitsh\\cits\\EnvCits\\applications\\connexions_bd\\alias[PROD_PRO]_type[2T].sde", 
+                          "instance": "PROD_PRO", 
+                          "password": "pro"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }, 
+          "400": {
+            "description": "Bad Request", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/message_erreur"
+                }, 
+                "examples": {
+                  "Ressource introuvable": {
+                    "value": {
+                      "exception": "<class 'swagger_server.utils.erreurs.GAPIResourceNotFound'>", 
+                      "message": "La ressource /ressources/pro/applications/cits_fme est introuvable", 
+                      "stack": [
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\controllers\\systeme_controller.py', line 266, in 'post_systeme_ressources_recherche'", 
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\utils\\utils_gapi.py', line 49, in 'message_erreur'"
+                      ], 
+                      "traceback": [
+                        "swagger_server.utils.erreurs.GAPIResourceNotFound: La ressource /ressources/pro/applications/cits_fme est introuvable", 
+                        ""
+                      ]
+                    }
+                  }, 
+                  "Fichier introuvable": {
+                    "value": {
+                      "exception": "<class 'botocore.exceptions.ClientError'>", 
+                      "message": "An error occurred (404) when calling the HeadObject operation: Not Found : dev/ressources/general/ressources_CCCOT_1.json", 
+                      "stack": [
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\controllers\\systeme_controller.py', line 241, in 'post_systeme_ressources_recherche'", 
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\controllers\\systeme_controller.py', line 110, in 'get_systeme_fichier'", 
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\utils\\utils_s3.py', line 197, in 'get_s3_object'", 
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\utils\\utils_s3.py', line 179, in 'get_s3_object_head'", 
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\utils\\utils_gapi.py', line 49, in 'message_erreur'"
+                      ], 
+                      "traceback": [
+                        "Traceback (most recent call last):", 
+                        "  File \"D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\utils\\utils_s3.py\", line 177, in get_s3_object_head", 
+                        "    \"GAPI_AWS_S3_BUCKET_NAME\"), Key=fichier_url)", 
+                        "  File \"d:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\env\\lib\\site-packages\\botocore\\client.py\", line 316, in _api_call", 
+                        "    return self._make_api_call(operation_name, kwargs)", 
+                        "  File \"d:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\env\\lib\\site-packages\\botocore\\client.py\", line 626, in _make_api_call", 
+                        "    raise error_class(parsed_response, operation_name)", 
+                        "botocore.exceptions.ClientError: An error occurred (404) when calling the HeadObject operation: Not Found", 
+                        ""
+                      ]
+                    }
+                  }, 
+                  "Acc\u00e8s non autoris\u00e9": {
+                    "value": {
+                      "exception": "<class 'swagger_server.utils.erreurs.GAPIThemeURLAccessNotAllowed'>", 
+                      "message": "Le th\u00e8me r\u00e9f\u00e9renc\u00e9 dans le url: dev/ressources/admin/geosys.json ne figure pas dans la liste des th\u00e8mes de l'utilisateur. Les th\u00e8mes autoris\u00e9e sont: ['AUTO_BUILDING', 'CORINT_250K', 'HYDRO_50K']", 
+                      "stack": [
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\controllers\\systeme_controller.py', line 241, in 'post_systeme_ressources_recherche'", 
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\controllers\\systeme_controller.py', line 102, in 'get_systeme_fichier'", 
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\utils\\utils_s3.py', line 97, in 'get_s3_session'", 
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\utils\\utils_s3.py', line 56, in 'check_s3_theme_access'", 
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\utils\\utils_gapi.py', line 49, in 'message_erreur'"
+                      ], 
+                      "traceback": [
+                        "swagger_server.utils.erreurs.GAPIThemeURLAccessNotAllowed: Le th\u00e8me r\u00e9f\u00e9renc\u00e9 dans le url: dev/ressources/admin/geosys.json ne figure pas dans la liste des th\u00e8mes de l'utilisateur. Les th\u00e8mes autoris\u00e9e sont: ['AUTO_BUILDING', 'CORINT_250K', 'HYDRO_50K']", 
+                        ""
+                      ]
+                    }
+                  }, 
+                  "Type de fichier invalide": {
+                    "value": {
+                      "exception": "<class 'swagger_server.utils.erreurs.GAPIResourceInvalidFileType'>", 
+                      "message": "Type de fichier invalide : dev/ressources/general/ressources_CCCOT.txt. JSON ou XML attendu", 
+                      "stack": [
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\controllers\\systeme_controller.py', line 241, in 'post_systeme_ressources_recherche'", 
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\utils\\utils_gapi.py', line 49, in 'message_erreur'"
+                      ], 
+                      "traceback": [
+                        "swagger_server.utils.erreurs.GAPIResourceInvalidFileType: Type de fichier invalide : dev/ressources/general/ressources_CCCOT.txt. JSON ou XML attendu", 
+                        ""
+                      ]
+                    }
+                  }, 
+                  "Contenu du fichier JSON invalide": {
+                    "value": {
+                      "exception": "<class 'swagger_server.utils.erreurs.GAPIResourceInvalidJsonData'>", 
+                      "message": "Donn\u00e9es JSON invalide dans le fichier dev/ressources/general/ressources_CCCOT.json", 
+                      "stack": [
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\controllers\\systeme_controller.py', line 247, in 'post_systeme_ressources_recherche'", 
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\utils\\utils_ress.py', line 128, in 'parse'", 
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\utils\\utils_gapi.py', line 49, in 'message_erreur'"
+                      ], 
+                      "traceback": [
+                        "swagger_server.utils.erreurs.GAPIResourceInvalidJsonData: Donn\u00e9es JSON invalide dans le fichier dev/ressources/general/ressources_CCCOT.json", 
+                        ""
+                      ]
+                    }
+                  }, 
+                  "Contenu du fichier XML invalide": {
+                    "value": {
+                      "exception": "<class 'swagger_server.utils.erreurs.GAPIResourceInvalidXmlData'>", 
+                      "message": "Donn\u00e9es XML invalide dans le fichier dev/ressources/general/ressources_CCCOT.xml", 
+                      "stack": [
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\controllers\\systeme_controller.py', line 247, in 'post_systeme_ressources_recherche'", 
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\utils\\utils_ress.py', line 125, in 'parse'", 
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\utils\\utils_gapi.py', line 49, in 'message_erreur'"
+                      ], 
+                      "traceback": [
+                        "swagger_server.utils.erreurs.GAPIResourceInvalidXmlData: Donn\u00e9es XML invalide dans le fichier dev/ressources/general/ressources_CCCOT.xml", 
+                        ""
+                      ]
+                    }
+                  }, 
+                  "JSON invalide": {
+                    "value": {
+                      "type": "about:blank", 
+                      "title": "Bad Request", 
+                      "detail": "Request body is not valid JSON", 
+                      "status": 400
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "read"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "read"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.systeme_controller"
+      }
+    }, 
+    "/systeme/cryptage": {
+      "post": {
+        "tags": [
+          "systeme"
+        ], 
+        "summary": "Crypter du texte avec une cl\u00e9 gsh", 
+        "description": "Retourne la version crypt\u00e9e du texte sp\u00e9cifi\u00e9 en se basant sur la cl\u00e9 fournie.", 
+        "operationId": "post_systeme_cryptage", 
+        "parameters": [], 
+        "requestBody": {
+          "description": "Un objet JSON contenant le texte \u00e0 crypter et la cl\u00e9 gsh.", 
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/systeme_cryptage_decryptage_requete"
+              }, 
+              "examples": {
+                "Requ\u00eate de cryptage": {
+                  "value": {
+                    "texte": "Cat's foot iron claw", 
+                    "cle_gsh": "gAAAAABfM9Hv7XEEysFfYyWU32VV2-qlm_d7IV6YIbguatR1-MCN-RmpdDlJRkef-6cikXwvbtDovmFRI2lDCVtZBajBW5y2Bg=="
+                  }
+                }
+              }
+            }
+          }
+        }, 
+        "responses": {
+          "200": {
+            "description": "OK", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/systeme_cryptage_decryptage_retour"
+                }, 
+                "examples": {
+                  "Requ\u00eate de cryptage": {
+                    "value": {
+                      "texte": "gAAAAABfO9iq54ZWJBK-k7gkOV-hnIX4b8cLXs0SDhm2PBXSnJN1oBmtEPJD02oDQWkUV3NqydldrL4Zs6ju5kU5gLB2bKHose2Y3ij7a6IityD87DcSVH0="
+                    }
+                  }
+                }
+              }
+            }
+          }, 
+          "400": {
+            "description": "Bad Request", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object", 
+                  "properties": {}, 
+                  "x-content-type": "application/json"
+                }, 
+                "examples": {
+                  "Exemple": {
+                    "value": {
+                      "type": "about:blank", 
+                      "title": "Bad Request", 
+                      "detail": "'texte' is a required property", 
+                      "status": 400
+                    }
+                  }
+                }
+              }
+            }
+          }, 
+          "500": {
+            "description": "Internal Server Error", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "read"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "read"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.systeme_controller"
+      }
+    }, 
+    "/systeme/decryptage": {
+      "post": {
+        "tags": [
+          "systeme"
+        ], 
+        "summary": "D\u00e9crypter du texte avec une cl\u00e9 gsh", 
+        "description": "Retourne la version d\u00e9crypt\u00e9e du texte sp\u00e9cifi\u00e9 en se basant sur la cl\u00e9 fournie.", 
+        "operationId": "post_systeme_decryptage", 
+        "requestBody": {
+          "description": "Un objet JSON contenant le texte \u00e0 d\u00e9crypter et la cl\u00e9 gsh.", 
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/systeme_cryptage_decryptage_requete"
+              }, 
+              "examples": {
+                "Requ\u00eate de d\u00e9cyptage": {
+                  "value": {
+                    "texte": "gAAAAABfO9iq54ZWJBK-k7gkOV-hnIX4b8cLXs0SDhm2PBXSnJN1oBmtEPJD02oDQWkUV3NqydldrL4Zs6ju5kU5gLB2bKHose2Y3ij7a6IityD87DcSVH0=", 
+                    "cle_gsh": "gAAAAABfM9Hv7XEEysFfYyWU32VV2-qlm_d7IV6YIbguatR1-MCN-RmpdDlJRkef-6cikXwvbtDovmFRI2lDCVtZBajBW5y2Bg=="
+                  }
+                }
+              }
+            }
+          }
+        }, 
+        "responses": {
+          "200": {
+            "description": "OK", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/systeme_cryptage_decryptage_retour"
+                }, 
+                "examples": {
+                  "Requ\u00eate de d\u00e9cryptage": {
+                    "value": {
+                      "texte": "Cat's foot iron claw"
+                    }
+                  }
+                }
+              }
+            }
+          }, 
+          "400": {
+            "description": "Bad Request", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object", 
+                  "properties": {}, 
+                  "x-content-type": "application/json"
+                }, 
+                "examples": {
+                  "Exemple": {
+                    "value": {
+                      "type": "about:blank", 
+                      "title": "Bad Request", 
+                      "detail": "'texte' is a required property", 
+                      "status": 400
+                    }
+                  }
+                }
+              }
+            }
+          }, 
+          "500": {
+            "description": "Internal Server Error", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "read"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "read"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.systeme_controller"
+      }
+    }, 
+    "/systeme/decryptage_gsh": {
+      "post": {
+        "tags": [
+          "systeme"
+        ], 
+        "summary": "D\u00e9crypter les \u00e9tiquettes gsh dans du texte", 
+        "description": "Retourne la version modifi\u00e9e du texte sp\u00e9cifi\u00e9 o\u00f9 les \u00e9tiquettes de la forme [gsh:<informations_crypt\u00e9es>] ont \u00e9t\u00e9 d\u00e9crypt\u00e9es en se basant sur la cl\u00e9 fournie.", 
+        "operationId": "post_systeme_decryptage_gsh", 
+        "requestBody": {
+          "description": "Un objet JSON contenant le texte \u00e0 d\u00e9crypter et la cl\u00e9 gsh. Le texte contient des \u00e9tiquettes de la forme [gsh:<informations_crypt\u00e9es>]", 
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/systeme_cryptage_decryptage_requete"
+              }, 
+              "examples": {
+                "Requ\u00eate contenant des \u00e9tiquettes gsh": {
+                  "value": {
+                    "texte": "postgresql://[gsh:gAAAAABfO_FRN-pSqa5_rrabEAK2Qta5_ML5xfBgYrnJHWcL2RPy1tIk6OK_6DEvBKZFG-0nzRue-J4X8ockR2q2Xj3WslW31Q==]:[gsh:gAAAAABfO_FRLi3_-UryrlQdmZXZ5MO3JZYfjLhPb_lGDkQLYA_tvZEvn5auBoUsQ8WXrJ23euxEQxfyApki36FWG_4S49XfrA==]@132.156.18.220:14180/metriques_dev", 
+                    "cle_gsh": "gAAAAABfM9Hv7XEEysFfYyWU32VV2-qlm_d7IV6YIbguatR1-MCN-RmpdDlJRkef-6cikXwvbtDovmFRI2lDCVtZBajBW5y2Bg=="
+                  }
+                }
+              }
+            }
+          }
+        }, 
+        "responses": {
+          "200": {
+            "description": "OK", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/systeme_cryptage_decryptage_retour"
+                }, 
+                "examples": {
+                  "Requ\u00eate contenant des \u00e9tiquettes gsh": {
+                    "value": {
+                      "texte": "postgresql://skywalker:tatooine@132.156.18.220:14180/metriques_dev"
+                    }
+                  }
+                }
+              }, 
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/systeme_cryptage_decryptage_retour"
+                }, 
+                "examples": {
+                  "Requ\u00eate contenant des \u00e9tiquettes gsh": {}
+                }
+              }
+            }
+          }, 
+          "400": {
+            "description": "Bad Request", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object", 
+                  "properties": {}, 
+                  "x-content-type": "application/json"
+                }, 
+                "examples": {
+                  "Exemple": {
+                    "value": {
+                      "type": "about:blank", 
+                      "title": "Bad Request", 
+                      "detail": "'texte' is a required property", 
+                      "status": 400
+                    }
+                  }
+                }
+              }
+            }
+          }, 
+          "500": {
+            "description": "Internal Server Error", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "read"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "read"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.systeme_controller"
+      }
+    }, 
+    "/systeme/cle_gsh": {
+      "post": {
+        "tags": [
+          "systeme"
+        ], 
+        "summary": "G\u00e9n\u00e9rer une cl\u00e9 gsh pour le cryptage et d\u00e9cryptage de texte", 
+        "description": "Retourne une cl\u00e9 de cryptage bas\u00e9e sur un texte. La cl\u00e9 pourra ensuite \u00eatre utils\u00e9e pour crypter et d\u00e9crypter du texte. Elle fonctionnera seulement dans les services de l'API GeoSys.", 
+        "operationId": "post_systeme_cle_gsh", 
+        "requestBody": {
+          "description": "Un objet JSON contenant le texte qui sera utilis\u00e9 pour g\u00e9n\u00e9rer la cl\u00e9 gsh.", 
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/systeme_crypto_cle_gsh_requete"
+              }, 
+              "examples": {
+                "Obtention de la cl\u00e9 gsh": {
+                  "value": {
+                    "texte": "21st Century Schizoid Man"
+                  }
+                }
+              }
+            }
+          }
+        }, 
+        "responses": {
+          "200": {
+            "description": "OK", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/systeme_crypto_cle_gsh_retour"
+                }, 
+                "examples": {
+                  "Obtention de la cl\u00e9 gsh": {
+                    "value": {
+                      "cle_gsh": "gAAAAABfO_axZjmA3FrxXsimxJFuBYrJTiV0TL96_Fkhbw5ygvlV_1C5u9I3rijwun5B_tMeyZkcuzoh_R2s21s1yfQSS0Upk4gHwWXjuCO1YSPCEcgJcwc="
+                    }
+                  }
+                }
+              }
+            }
+          }, 
+          "400": {
+            "description": "Bad Request", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object", 
+                  "properties": {}, 
+                  "x-content-type": "application/json"
+                }, 
+                "examples": {
+                  "Exemple": {
+                    "value": {
+                      "type": "about:blank", 
+                      "title": "Bad Request", 
+                      "detail": "'texte' is a required property", 
+                      "status": 400
+                    }
+                  }
+                }
+              }
+            }
+          }, 
+          "500": {
+            "description": "Internal Server Error", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": [
+              "read"
+            ]
+          }, 
+          {
+            "geosys_auth": [
+              "read"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.systeme_controller"
+      }
+    }, 
+    "/systeme/tache": {
+      "post": {
+        "tags": [
+          "systeme"
+        ], 
+        "summary": "Ins\u00e9rer les informations d'une t\u00e2che dans la table des t\u00e2ches", 
+        "description": "Permet d'ins\u00e9rer des informations dans la table des t\u00e2ches GeoSys. ", 
+        "operationId": "post_tache", 
+        "requestBody": {
+          "description": "Un objet JSON contenant les informations \u00e0 ins\u00e9rer dans la table des t\u00e2ches", 
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/systeme_tache_requete"
+              }, 
+              "examples": {
+                "T\u00e2che avec toutes les informations": {
+                  "value": {
+                    "id_groupe": "123", 
+                    "no_seq": 1, 
+                    "categorie": "FME", 
+                    "sous_categorie": "API", 
+                    "commande": "https://s-she-fmetst:8080/systeme/lancer/par=234", 
+                    "process_id": "", 
+                    "process_agent": "", 
+                    "equipe": "HYDRO", 
+                    "env": "DEV", 
+                    "courriel": "james.holden@rocinante.com", 
+                    "info_json": {
+                      "uuid": "{09233c87-d5a8-49f6-981e-8aee0364028c}"
+                    }, 
+                    "info_texte": "Miller", 
+                    "note": "Protomol\u00e9cule"
+                  }
+                }, 
+                "T\u00e2che avec un minimum d'information": {
+                  "value": {
+                    "id_groupe": "123", 
+                    "no_seq": 1, 
+                    "categorie": "FME", 
+                    "sous_categorie": "API", 
+                    "commande": "https://s-she-fmetst:8080/systeme/lancer/par=234"
+                  }
+                }
+              }
+            }
+          }
+        }, 
+        "responses": {
+          "200": {
+            "description": "OK", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/systeme_tache_retour"
+                }, 
+                "examples": {
+                  "Exemple": {
+                    "value": {
+                      "id": "GST123"
+                    }
+                  }
+                }
+              }
+            }
+          }, 
+          "400": {
+            "description": "Bad Request", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/message_erreur"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": []
+          }, 
+          {
+            "geosys_auth": [
+              "read"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.systeme_controller"
+      }
+    }, 
+    "/systeme/tache/{id_tache}": {
+      "get": {
+        "tags": [
+          "systeme"
+        ], 
+        "summary": "Obtenir les informations d'une t\u00e2che", 
+        "description": "Obtenir les informations d'une t\u00e2che sp\u00e9cifique \u00e0 partir de son ID dans la table des t\u00e2ches GeoSys. ", 
+        "operationId": "get_systeme_tache_id", 
+        "parameters": [
+          {
+            "name": "id_tache", 
+            "in": "path", 
+            "required": true, 
+            "style": "simple", 
+            "explode": false, 
+            "schema": {
+              "type": "string"
+            }
+          }
+        ], 
+        "responses": {
+          "200": {
+            "description": "OK", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/systeme_tache_info"
+                }, 
+                "examples": {
+                  "T\u00e2che trouv\u00e9e": {
+                    "value": {
+                      "id": "GST33", 
+                      "valide": true, 
+                      "statut": "ACTIF", 
+                      "id_groupe": "123", 
+                      "no_seq": 1, 
+                      "categorie": "FME", 
+                      "sous_categorie": "API", 
+                      "commande": "https://s-she-fmetst:8080/systeme/lancer/par=234", 
+                      "process_id": "123", 
+                      "process_agent": "s-she-fmetst:8080", 
+                      "equipe": "RHN", 
+                      "env": "DEV", 
+                      "courriel": "", 
+                      "info_json": {}, 
+                      "info_texte": "", 
+                      "note": "Test de lancement"
+                    }
+                  }, 
+                  "Aucune t\u00e2che ne correspond au ID": {
+                    "value": {}
+                  }
+                }
+              }
+            }
+          }, 
+          "400": {
+            "description": "Bad Request", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/message_erreur"
+                }, 
+                "examples": {
+                  "ID introuvable": {
+                    "value": {
+                      "exception": "<class 'swagger_server.utils.erreurs.GAPIIdTacheIntrouvable'>", 
+                      "message": "Le ID de t\u00e2che GST33 est introuvable dans la table des t\u00e2ches", 
+                      "stack": [
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\controllers\\systeme_controller.py', line 200, in 'get_systeme_tache_id'", 
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\utils\\utils_gapi.py', line 49, in 'message_erreur'"
+                      ], 
+                      "traceback": [
+                        "swagger_server.utils.erreurs.GAPIIdTacheIntrouvable: Le ID de t\u00e2che GST33 est introuvable dans la table des t\u00e2ches", 
+                        ""
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": []
+          }, 
+          {
+            "geosys_auth": [
+              "read"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.systeme_controller"
+      }, 
+      "put": {
+        "tags": [
+          "systeme"
+        ], 
+        "summary": "Mettre \u00e0 jour les informations d'une t\u00e2che", 
+        "description": "Mettre \u00e0 jour les informations d'une t\u00e2che dans la table des t\u00e2ches GeoSys. ", 
+        "operationId": "put_systeme_tache_id", 
+        "parameters": [
+          {
+            "name": "id_tache", 
+            "in": "path", 
+            "required": true, 
+            "style": "simple", 
+            "explode": false, 
+            "schema": {
+              "type": "string"
+            }
+          }
+        ], 
+        "requestBody": {
+          "description": "Un objet JSON contenant les informations de la t\u00e2che \u00e0 mettre \u00e0 jour dans la table des t\u00e2ches", 
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/systeme_tache_id_requete"
+              }, 
+              "examples": {
+                "Mise \u00e0 jours de l'information du process": {
+                  "value": {
+                    "process_id": "1234", 
+                    "process_agent": "s-she-fmetst:8080"
+                  }
+                }, 
+                "Mise \u00e0 jour de la note": {
+                  "value": {
+                    "note": "Le traitement s'ex\u00e9cute sur le serveur xyz"
+                  }
+                }
+              }
+            }
+          }
+        }, 
+        "responses": {
+          "200": {
+            "description": "Op\u00e9ration r\u00e9ussie"
+          }, 
+          "400": {
+            "description": "Bad Request", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/message_erreur"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": []
+          }, 
+          {
+            "geosys_auth": [
+              "read"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.systeme_controller"
+      }
+    }, 
+    "/systeme/taches": {
+      "post": {
+        "tags": [
+          "systeme"
+        ], 
+        "summary": "Obtenir une liste de t\u00e2ches selon des crit\u00e8res", 
+        "description": "Permet d'obtenir la liste des t\u00e2ches GeoSys seleon un requ\u00eate SQL. La requ\u00eate peut se faire sur deux vues :\n\n    \"taches\" : affiche seulement les t\u00e2ches dont la valeur du champ \"actif\" est True. \n\n    \"taches\" : affiche toutes les t\u00e2ches", 
+        "operationId": "post_systeme_taches", 
+        "parameters": [], 
+        "requestBody": {
+          "description": "Un objet JSON contenant la requ\u00eate SQL d'extraction des informations dans la table des t\u00e2ches GeoSys.  ", 
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/systeme_taches_requete"
+              }, 
+              "examples": {
+                "Exemple": {
+                  "value": {
+                    "sql": "select statut, categorie, sous_categorie, no_seq from taches where id_groupe='{12344}' order by no_seq"
+                  }
+                }
+              }
+            }
+          }
+        }, 
+        "responses": {
+          "200": {
+            "description": "OK", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/systeme_taches_retour"
+                }, 
+                "examples": {
+                  "T\u00e2ches trouv\u00e9es": {
+                    "value": {
+                      "taches": [
+                        {
+                          "id": "GST33", 
+                          "valide": true, 
+                          "statut": "ACTIF", 
+                          "id_groupe": "123", 
+                          "no_seq": 1, 
+                          "categorie": "FME", 
+                          "sous_categorie": "API", 
+                          "commande": "https://s-she-fmetst:8080/systeme/lancer/par=234", 
+                          "process_id": "123", 
+                          "process_agent": "s-she-fmetst:8080", 
+                          "equipe": "RHN", 
+                          "env": "DEV", 
+                          "courriel": "", 
+                          "info_json": {}, 
+                          "info_texte": "", 
+                          "note": "Test de lancement"
+                        }, 
+                        {
+                          "id": "GST34", 
+                          "valide": true, 
+                          "statut": "-", 
+                          "id_groupe": "123", 
+                          "no_seq": 2, 
+                          "categorie": "FME", 
+                          "sous_categorie": "API", 
+                          "commande": "https://s-she-fmetst:8080/systeme/lancer/par=567", 
+                          "process_id": "", 
+                          "process_agent": "", 
+                          "equipe": "RHN", 
+                          "env": "DEV", 
+                          "courriel": "", 
+                          "info_json": {}, 
+                          "info_texte": "", 
+                          "note": "Test de lancement"
+                        }
+                      ]
+                    }
+                  }, 
+                  "Aucune t\u00e2che ne correspond aux crit\u00e8res": {
+                    "value": {
+                      "taches": []
+                    }
+                  }
+                }
+              }
+            }
+          }, 
+          "400": {
+            "description": "Bad Request", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/message_erreur"
+                }, 
+                "examples": {
+                  "La requ\u00eate ne d\u00e9bute pas par SELECT": {
+                    "value": {
+                      "type": "about:blank", 
+                      "title": "Bad Request", 
+                      "detail": "\" select statut, categorie, sous_categorie, no_seq from taches where id_groupe='123' order by no_seq\" does not match '(?i)^SELECT.*' - 'sql'", 
+                      "status": 400
+                    }
+                  }, 
+                  "Vue invalide": {
+                    "value": {
+                      "exception": "<class 'swagger_server.utils.erreurs.GAPITachesErreurSelect'>", 
+                      "message": "[UndefinedTable] Un probl\u00e8me est survenu lors du traitement de la requ\u00eate", 
+                      "stack": [
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\controllers\\systeme_controller.py', line 428, in 'post_systeme_taches'", 
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\utils\\utils_gapi.py', line 49, in 'message_erreur'"
+                      ], 
+                      "traceback": [
+                        "swagger_server.utils.erreurs.GAPITachesErreurSelect: [UndefinedTable] Un probl\u00e8me est survenu lors du traitement de la requ\u00eate", 
+                        ""
+                      ]
+                    }
+                  }, 
+                  "Erreur de syntaxe": {
+                    "value": {
+                      "exception": "<class 'swagger_server.utils.erreurs.GAPITachesErreurSelect'>", 
+                      "message": "[SyntaxError] Un probl\u00e8me est survenu lors du traitement de la requ\u00eate", 
+                      "stack": [
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\controllers\\systeme_controller.py', line 428, in 'post_systeme_taches'", 
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\utils\\utils_gapi.py', line 49, in 'message_erreur'"
+                      ], 
+                      "traceback": [
+                        "swagger_server.utils.erreurs.GAPITachesErreurSelect: [SyntaxError] Un probl\u00e8me est survenu lors du traitement de la requ\u00eate", 
+                        ""
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": []
+          }, 
+          {
+            "geosys_auth": [
+              "read"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.systeme_controller"
+      }
+    }, 
+    "/systeme/tache/groupe/statut/{id_groupe}": {
+      "get": {
+        "tags": [
+          "systeme"
+        ], 
+        "summary": "Changer le statut d'une \u00e9tape d'un groupe dans la table des t\u00e2ches", 
+        "description": "Permet de changer le statut de la prochaine \u00e9tape ou l'\u00e9tape active en s\u00e9quence dans un groupe.\n\nLes t\u00e2ches d'un groupe sont ordonn\u00e9es selon le champ \u00abno_seq\u00bb dans la table des t\u00e2ches.\n\nLa s\u00e9quence des statuts est la suivante :\n\n    - -> LANCER -> ACTIVE -> TERMIN\u00c9E ou ERREUR \n\nStatuts disponibles : \n\nTERMIN\u00c9E\n\nCe statut indique que la t\u00e2che a \u00e9t\u00e9 ex\u00e9cut\u00e9e et qu'elle s'est termin\u00e9e avec succ\u00e8s.\n\n    Pour changer le statut \u00e0 TERMIN\u00c9E de l'\u00e9tape de la s\u00e9quence du groupe dont le statut est ACTIVE.\n    \n    Si la s\u00e9quence du groupe ne contient pas d'\u00e9tapes avec le statut ACTIVE, aucun enregistrement n'est modifi\u00e9.\n\nERREUR\n\nCe statut indique que la t\u00e2che a \u00e9t\u00e9 ex\u00e9cut\u00e9e et qu'elle s'est termin\u00e9e avec une erreur.\n\n    Pour changer le statut \u00e0 ERREUR de l'\u00e9tape de la s\u00e9quence du groupe dont le statut est ACTIVE.\n    \n    Si la s\u00e9quence du groupe ne contient pas d'\u00e9tapes avec le statut ACTIVE, aucun enregistrement n'est modifi\u00e9.\n\nLANCER\n\nCe statut indique que la t\u00e2che peut s'ex\u00e9cuter et qu'un d\u00e9mon peut la d\u00e9marrer.\n\n    Pour changer le statut \u00e0 LANCER de la premi\u00e8re \u00e9tape de la s\u00e9quence dont le statut est \"-\" s'il s'agit de la premi\u00e8re \u00e9tape ou si le statut de l'\u00e9tape pr\u00e9c\u00e9dente est TERMIN\u00c9E.\n    \n    En utilisant le param\u00e8tre \u00abcontinuer=true\u00bb, le statut de l'\u00e9tape est chang\u00e9 pour LANCER m\u00eame si le statut de l'\u00e9tape pr\u00e9c\u00e9dente est ERREUR.\n    \n    En utilisant le param\u00e8tre relancer=true\u00bb, c'est l'\u00e9tape avec le statut \u00e0 ERREUR qui est chang\u00e9 pour LANCER.\n\nACTIVE\n\nCe statut indique que la t\u00e2che est en cours d'ex\u00e9cution qu'un d\u00e9mon peut la surveiller.\n\n    Pour changer le statut \u00e0 ACTIVE de l'\u00e9tape de la s\u00e9quence du groupe dont le statut est LANCER.    \n\nLes \u00e9tapes qui suivent celle avec un statut \u00e0 STOP sont ignor\u00e9es.\n        \nLes \u00e9tapes avec un statut \u00e0 X sont ignor\u00e9es.", 
+        "operationId": "get_systeme_tache_groupe_statut_id_groupe", 
+        "parameters": [
+          {
+            "name": "id_groupe", 
+            "in": "path", 
+            "required": true, 
+            "style": "simple", 
+            "explode": false, 
+            "schema": {
+              "type": "string"
+            }
+          }, 
+          {
+            "name": "statut", 
+            "in": "query", 
+            "description": "Nouveau statut", 
+            "required": false, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "type": "string", 
+              "enum": [
+                "TERMIN\u00c9E", 
+                "ACTIVE", 
+                "LANCER", 
+                "ERREUR"
+              ]
+            }
+          }, 
+          {
+            "name": "continuer", 
+            "in": "query", 
+            "description": "Permet de mettre le statut \u00e0 \"LANCER\" de la prochaine \u00e9tape m\u00eame si le statut de l'\u00e9tape pr\u00e9c\u00e9dente est ERREUR", 
+            "required": false, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "type": "boolean", 
+              "default": false, 
+              "enum": [
+                true, 
+                false
+              ]
+            }
+          }, 
+          {
+            "name": "relancer", 
+            "in": "query", 
+            "description": "Permet de remettre le statut \u00e0 LANCER de la derni\u00e8re \u00e9tape avec le statut ERREUR", 
+            "required": false, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "type": "boolean", 
+              "default": false, 
+              "enum": [
+                true, 
+                false
+              ]
+            }
+          }
+        ], 
+        "responses": {
+          "200": {
+            "description": "OK\n\nSi un enregistrement a \u00e9t\u00e9 modif\u00e9 dans le table, son id est tourn\u00e9 et le code de retour est 0. Si aucun changement n'a \u00e9t\u00e9 fait, la valeur du id est vide, le code de retour est 1 et le message indique la raison.", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/systeme_tache_groupe_statut_retour"
+                }, 
+                "examples": {
+                  "L'enregistrement a \u00e9t\u00e9 modifi\u00e9": {
+                    "value": {
+                      "id": "GST40", 
+                      "retour": 0, 
+                      "message": "TERMIN\u00c9E"
+                    }
+                  }, 
+                  "Mauvais statut pour l'\u00e9tat": {
+                    "value": {
+                      "id": "", 
+                      "retour": 1, 
+                      "message": "Le statut ACTIVE s'applique seulement \u00e0 une t\u00e2che avec le statut LANCER"
+                    }
+                  }, 
+                  "Groupe de t\u00e2che inconnu": {
+                    "value": {
+                      "id": "", 
+                      "retour": 1, 
+                      "message": "Il n'y a pas de t\u00e2ches avec cet identifiant de groupe"
+                    }
+                  }, 
+                  "Toutes les t\u00e2ches du groupe sont termin\u00e9es": {
+                    "value": {
+                      "id": "", 
+                      "retour": 1, 
+                      "message": "Toutes les t\u00e2ches du groupe sont termin\u00e9es"
+                    }
+                  }
+                }
+              }
+            }
+          }, 
+          "400": {
+            "description": "Bad Request", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/message_erreur"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": []
+          }, 
+          {
+            "geosys_auth": [
+              "read"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.systeme_controller"
+      }
+    }, 
+    "/meta/livrer-md": {
+      "post": {
+        "tags": [
+          "meta"
+        ], 
+        "description": "Permet d'enregistrer des m\u00e9tadonn\u00e9es dans GeoSys. Les m\u00e9tadonn\u00e9es sont pass\u00e9es au syst\u00e8me par l'entremise d'un fichier JSON. Celui-ci doit respecter le sch\u00e9ma GeoSys. Pour s'assurer de la conformit\u00e9, il possible de valider le fichier JSON en utilisant le point d'entr\u00e9e: /meta/valider-md. \n\nOn peut passer un ou plusieur fichiers JSON. Pour passer plusieurs fichiers il faut au pr\u00e9alable les zipper avant de les transmettre au syst\u00e8me.", 
+        "operationId": "post_meta_livrer_md", 
+        "parameters": [
+          {
+            "name": "courriel", 
+            "in": "query", 
+            "description": "Le courriel donn\u00e9 en param\u00e8tre aura pr\u00e9s\u00e9ance sur celui qui provient du compte de l'usager et qui se trouve dans son token.", 
+            "required": false, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "pattern": "(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])", 
+              "type": "string"
+            }
+          }
+        ], 
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/metadata_livraison"
+              }
+            }
+          }
+        }, 
+        "responses": {
+          "200": {
+            "description": "OK", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_auth": [
+              "write"
+            ]
+          }, 
+          {
+            "geosys_bearer": []
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.meta_controller"
+      }
+    }, 
+    "/systeme/liste-nouveaux-fichiers": {
+      "get": {
+        "tags": [
+          "systeme"
+        ], 
+        "summary": "Obtenir la liste des nouveaux fichiers S3", 
+        "description": "Permet d'obtenir la liste des nouveaux fichiers dans un dossier S3 depuis le dernier appel. Les sous-r\u00e9pertoires et leurs fichiers sont ignor\u00e9s.\n\nUne cl\u00e9 de m\u00e9tadonn\u00e9e nomm\u00e9e \"gapi-fichier-vu\" est ajout\u00e9e \u00e0 chaque nouveau fichier trouv\u00e9 par le service pour qu'il soit ignor\u00e9 lors d'une v\u00e9rification subs\u00e9quente. Elle contient le nom de l'usager et la date \u00e0 laquelle le fichier a \u00e9t\u00e9 vu.\n\n<span style=\"color:red; font-weight:bold\">Cette action cr\u00e9e une copie de l'objet avec les param\u00e8tres mis \u00e0 jour et une nouvelle date de derni\u00e8re modification.</span>", 
+        "operationId": "get_systeme_liste_nouveaux_fichiers", 
+        "parameters": [
+          {
+            "name": "chemin", 
+            "in": "query", 
+            "description": "Dossier S3 dans lequel chercher les nouveaux fichiers", 
+            "required": true, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "type": "string", 
+              "example": "dev/travail/themes/HYDRO_50K/incoming"
+            }
+          }, 
+          {
+            "name": "filtre", 
+            "in": "query", 
+            "description": "Motif (wildcard) correspondant au nom des fichiers \u00e0 trouver", 
+            "required": false, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "type": "string", 
+              "example": "", 
+              "default": "*"
+            }
+          }
+        ], 
+        "responses": {
+          "200": {
+            "description": "OK", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object", 
+                  "properties": {}, 
+                  "example": {}, 
+                  "x-content-type": "application/json"
+                }, 
+                "examples": {
+                  "Nouveaux fichiers trouv\u00e9s": {
+                    "value": {
+                      "fichiers": [
+                        "dev/travail/themes/HYDRO_50K/incoming/031g01.zip", 
+                        "dev/travail/themes/HYDRO_50K/incoming/021e05.zip"
+                      ], 
+                      "chemin_existe": true
+                    }
+                  }, 
+                  "Chemin inexistant": {
+                    "value": {
+                      "fichiers": [], 
+                      "chemin_existe": false
+                    }
+                  }, 
+                  "Aucun nouveau fichier": {
+                    "value": {
+                      "fichiers": [], 
+                      "chemin_existe": true
+                    }
+                  }
+                }
+              }
+            }
+          }, 
+          "400": {
+            "description": "Bad Request", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/message_erreur"
+                }, 
+                "examples": {
+                  "example-1": {}
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": []
+          }, 
+          {
+            "geosys_auth": [
+              "read"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.systeme_controller"
+      }
+    }, 
+    "/systeme/metadonnee-fichier": {
+      "get": {
+        "tags": [
+          "systeme"
+        ], 
+        "summary": "Permet d'obtenir les m\u00e9tadonn\u00e9es d'un fichier dans S3", 
+        "description": "Obtenir les m\u00e9tadonn\u00e9es d'un fichier dans S3", 
+        "operationId": "get_systeme_metadonnee_fichier", 
+        "parameters": [
+          {
+            "name": "fichier_url", 
+            "in": "query", 
+            "description": "URL du fichier dans S3", 
+            "required": true, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "type": "string", 
+              "example": "dev/travail/themes/CORINT_50K/incoming/031g01.zip"
+            }
+          }
+        ], 
+        "responses": {
+          "200": {
+            "description": "OK", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/systeme_metadonnee_fichier_retour"
+                }, 
+                "examples": {
+                  "M\u00e9tadonn\u00e9es": {
+                    "value": {
+                      "gapi-fichier-vu": "emerson [2020-11-26 09.20.24]", 
+                      "sous-traitant": "emerson, lake & palmer"
+                    }
+                  }, 
+                  "Aucune m\u00e9tadonn\u00e9e": {
+                    "value": {}
+                  }
+                }
+              }
+            }
+          }, 
+          "400": {
+            "description": "Bad Request", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/message_erreur"
+                }, 
+                "examples": {
+                  "Fichier inexistant": {
+                    "value": {
+                      "exception": "<class 'swagger_server.utils.erreurs.GAPIInvalidS3URL'>", 
+                      "message": "Le URL: dev/travail/themes/CORINT_50K/incoming/kking.txt n'existe pas", 
+                      "stack": [
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\controllers\\systeme_controller.py', line 317, in 'get_systeme_metadonnee_fichier'", 
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\utils\\utils_gapi.py', line 50, in 'message_erreur'"
+                      ], 
+                      "traceback": [
+                        "swagger_server.utils.erreurs.GAPIInvalidS3URL: Le URL: dev/travail/themes/CORINT_50K/incoming/kking.txt n'existe pas", 
+                        ""
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": []
+          }, 
+          {
+            "geosys_auth": [
+              "read"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.systeme_controller"
+      }, 
+      "post": {
+        "tags": [
+          "systeme"
+        ], 
+        "summary": "Permet d'ajouter ou effacer une ou plusieurs cl\u00e9s de m\u00e9tadonn\u00e9es d'un fichier dans S3", 
+        "description": "Modifier ou ins\u00e9rer une ou plusieurs cl\u00e9s de m\u00e9tadonn\u00e9es d'un fichier dans S3.\n\nLe nom des cl\u00e9s sera forc\u00e9 en minuscule. Les caract\u00e8res valides pour les cl\u00e9s sont : les chiffres 0-9, les lettres a-z ainsi que les caract\u00e8res /!-_.*'()\n\n<span style=\"color:red; font-weight:bold\">Cette action cr\u00e9e une copie de l'objet avec les param\u00e8tres mis \u00e0 jour et une nouvelle date de derni\u00e8re modification.</span>.", 
+        "operationId": "post_systeme_metadonnee_fichier", 
+        "parameters": [
+          {
+            "name": "fichier_url", 
+            "in": "query", 
+            "description": "URL du fichier dans S3", 
+            "required": true, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "type": "string", 
+              "example": "dev/travail/themes/MON_THEMES/toto.txt"
+            }
+          }
+        ], 
+        "requestBody": {
+          "description": "Un objet JSON contenant les cl\u00e9s \u00e0 ins\u00e9rer/modifier avec les valeurs.\n\nAttention : le nom des cl\u00e9s est sensible \u00e0 la casse.", 
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/systeme_metadonnee_fichier_maj_ins"
+              }, 
+              "examples": {
+                "Modification/Insertion": {
+                  "value": {
+                    "sous-traitant": "emerson, lake & palmer", 
+                    "inspecteur": "lake"
+                  }
+                }
+              }
+            }
+          }
+        }, 
+        "responses": {
+          "200": {
+            "description": "OK", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/systeme_metadonnee_fichier_retour"
+                }, 
+                "examples": {
+                  "M\u00e9tadonn\u00e9es": {
+                    "value": {
+                      "gapi-fichier-vu": "emerson [2020-11-26 09.20.24]", 
+                      "sous-traitant": "emerson, lake & palmer", 
+                      "inspecteur": "lake"
+                    }
+                  }
+                }
+              }
+            }
+          }, 
+          "400": {
+            "description": "Bad Request", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/message_erreur"
+                }, 
+                "examples": {
+                  "Cl\u00e9 invalide": {
+                    "value": {
+                      "exception": "<class 'swagger_server.utils.erreurs.GAPICleMetaS3Invalide'>", 
+                      "message": "Le nom de cl\u00e9 de m\u00e9tadonn\u00e9es S3 contient des caract\u00e8res interdits : fichier:vu. Caract\u00e8res valides : chiffres 0-9, lettres a-z et les caract\u00e8res /!-_.*'()", 
+                      "stack": [
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\controllers\\systeme_controller.py', line 247, in 'get_systeme_liste_nouveaux_fichiers'", 
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\utils\\utils_s3.py', line 200, in 'set_s3_object_metadata'", 
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\utils\\utils_gapi.py', line 50, in 'message_erreur'"
+                      ], 
+                      "traceback": [
+                        "swagger_server.utils.erreurs.GAPICleMetaS3Invalide: Le nom de cl\u00e9 de m\u00e9tadonn\u00e9es S3 contient des caract\u00e8res interdits : fichier:vu. Caract\u00e8res valides : chiffres 0-9, lettres a-z et les caract\u00e8res /!-_.*'()", 
+                        ""
+                      ]
+                    }
+                  }, 
+                  "Fichier inexistant": {
+                    "value": {
+                      "exception": "<class 'swagger_server.utils.erreurs.GAPIInvalidS3URL'>", 
+                      "message": "Le URL: dev/travail/themes/CORINT_50K/incoming/kking.txt n'existe pas", 
+                      "stack": [
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\controllers\\systeme_controller.py', line 317, in 'get_systeme_metadonnee_fichier'", 
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\utils\\utils_gapi.py', line 50, in 'message_erreur'"
+                      ], 
+                      "traceback": [
+                        "swagger_server.utils.erreurs.GAPIInvalidS3URL: Le URL: dev/travail/themes/CORINT_50K/incoming/kking.txt n'existe pas", 
+                        ""
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": []
+          }, 
+          {
+            "geosys_auth": [
+              "read", 
+              "write"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.systeme_controller"
+      }, 
+      "delete": {
+        "tags": [
+          "systeme"
+        ], 
+        "summary": "Permet de d\u00e9truire une ou plusieurs cl\u00e9s de m\u00e9tadonn\u00e9es d'un fichier dans S3", 
+        "description": "D\u00e9truire une ou plusieurs cl\u00e9s de m\u00e9tadonn\u00e9es d'un fichier dans S3.\n\nLe nom des cl\u00e9s sera forc\u00e9 en minuscule. Les caract\u00e8res valides pour les cl\u00e9s sont : les chiffres 0-9, les lettres a-z ainsi que les caract\u00e8res /!-_.*'()\n\n<span style=\"color:red; font-weight:bold\">Cette action cr\u00e9e une copie de l'objet avec les param\u00e8tres mis \u00e0 jour et une nouvelle date de derni\u00e8re modification.</span>", 
+        "operationId": "delete_systeme_metadonnee_fichier", 
+        "parameters": [
+          {
+            "name": "fichier_url", 
+            "in": "query", 
+            "description": "URL du fichier dans S3", 
+            "required": true, 
+            "style": "form", 
+            "explode": true, 
+            "schema": {
+              "type": "string", 
+              "example": "dev/travail/themes/MON_THEMES/toto.txt"
+            }
+          }
+        ], 
+        "requestBody": {
+          "description": "Un objet JSON contenant les cl\u00e9s \u00e0 d\u00e9truire. Si une cl\u00e9 sp\u00e9cifi\u00e9e n'existe pas sur le fichier, elle sera ignor\u00e9e.", 
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/systeme_metadonnee_fichier_delete"
+              }, 
+              "examples": {
+                "Destruction de cl\u00e9s": {
+                  "value": {
+                    "liste_cles": [
+                      "inspecteur", 
+                      "usager"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }, 
+        "responses": {
+          "200": {
+            "description": "OK", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/systeme_metadonnee_fichier_retour"
+                }, 
+                "examples": {
+                  "M\u00e9tadonn\u00e9es": {
+                    "value": {
+                      "gapi-fichier-vu": "emerson [2020-11-26 09.20.24]", 
+                      "sous-traitant": "emerson, lake & palmer"
+                    }
+                  }
+                }
+              }
+            }
+          }, 
+          "400": {
+            "description": "Bad Request", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/message_erreur"
+                }, 
+                "examples": {
+                  "Cl\u00e9 invalide": {
+                    "value": {
+                      "exception": "<class 'swagger_server.utils.erreurs.GAPICleMetaS3Invalide'>", 
+                      "message": "Le nom de cl\u00e9 de m\u00e9tadonn\u00e9es S3 contient des caract\u00e8res interdits : fichier:vu. Caract\u00e8res valides : chiffres 0-9, lettres a-z et les caract\u00e8res /!-_.*'()", 
+                      "stack": [
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\controllers\\systeme_controller.py', line 247, in 'get_systeme_liste_nouveaux_fichiers'", 
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\utils\\utils_s3.py', line 200, in 'set_s3_object_metadata'", 
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\utils\\utils_gapi.py', line 50, in 'message_erreur'"
+                      ], 
+                      "traceback": [
+                        "swagger_server.utils.erreurs.GAPICleMetaS3Invalide: Le nom de cl\u00e9 de m\u00e9tadonn\u00e9es S3 contient des caract\u00e8res interdits : fichier:vu. Caract\u00e8res valides : chiffres 0-9, lettres a-z et les caract\u00e8res /!-_.*'()", 
+                        ""
+                      ]
+                    }
+                  }, 
+                  "Fichier inexistant": {
+                    "value": {
+                      "exception": "<class 'swagger_server.utils.erreurs.GAPIInvalidS3URL'>", 
+                      "message": "Le URL: dev/travail/themes/CORINT_50K/incoming/ccrimson.txt n'existe pas", 
+                      "stack": [
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\controllers\\systeme_controller.py', line 137, in 'delete_systeme_metadonnee_fichier'", 
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\utils\\utils_s3.py', line 298, in 'del_s3_object_metadata'", 
+                        "File 'D:\\cits\\EnvCits\\Developpement\\jhuot\\GCCode\\api-rest\\swagger_server\\utils\\utils_gapi.py', line 50, in 'message_erreur'"
+                      ], 
+                      "traceback": [
+                        "swagger_server.utils.erreurs.GAPIInvalidS3URL: Le URL: dev/travail/themes/CORINT_50K/incoming/ccrimson.txt n'existe pas", 
+                        ""
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": []
+          }, 
+          {
+            "geosys_auth": [
+              "read", 
+              "write"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.systeme_controller"
+      }
+    }, 
+    "/data/livrer-data": {
+      "post": {
+        "tags": [
+          "data"
+        ], 
+        "operationId": "post_data_livrer_data", 
+        "parameters": [], 
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/data_livrer"
+              }, 
+              "encoding": {
+                "param_connexion": {
+                  "contentType": "application/json", 
+                  "style": "form"
+                }
+              }
+            }
+          }
+        }, 
+        "responses": {
+          "201": {
+            "description": "Created", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/general_message"
+                }
+              }
+            }
+          }
+        }, 
+        "security": [
+          {
+            "geosys_bearer": []
+          }, 
+          {
+            "geosys_auth": [
+              "read", 
+              "write"
+            ]
+          }
+        ], 
+        "x-openapi-router-controller": "swagger_server.controllers.data_controller"
+      }
+    }
+  }, 
+  "components": {
+    "schemas": {
+      "general_liste_valeur": {
+        "title": "general_liste_valeur", 
+        "type": "object", 
+        "properties": {
+          "value": {
+            "type": "array", 
+            "items": {
+              "type": "string"
+            }
+          }
+        }, 
+        "example": {
+          "value": [
+            "value", 
+            "value"
+          ]
+        }
+      }, 
+      "general_message": {
+        "title": "general_message", 
+        "type": "object", 
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }, 
+        "example": {
+          "message": "message"
+        }
+      }, 
+      "data_edition": {
+        "title": "data_edition", 
+        "required": [
+          "fichier_data", 
+          "format_fichier_data"
+        ], 
+        "type": "object", 
+        "properties": {
+          "fichier_data": {
+            "type": "string", 
+            "description": "Fichier de donn\u00e9es \u00e0 charger", 
+            "format": "binary"
+          }, 
+          "fichier_meta": {
+            "type": "string", 
+            "description": "Fichier de m\u00e9tadonn\u00e9es \u00e0 charger", 
+            "format": "binary"
+          }, 
+          "format_fichier_data": {
+            "type": "string", 
+            "description": "Format du fichier de donn\u00e9es \u00e0 charger (GPKG/FGDB)", 
+            "enum": [
+              "GPKG", 
+              "FGDB"
+            ]
+          }, 
+          "md_id": {
+            "type": "string", 
+            "description": "Valeur de l'identifiant de m\u00e9tadonn\u00e9es \u00e0 appliquer \u00e0 tous les \u00e9l\u00e9ments provenant du fichier de donn\u00e9es \u00e0 charger"
+          }, 
+          "courriel": {
+            "type": "string", 
+            "description": "Courriel pour transmettre des messages"
+          }
+        }, 
+        "x-examples": {}
+      }, 
+      "data_lecture": {
+        "title": "data_lecture", 
+        "required": [
+          "format_fichier_data", 
+          "geom", 
+          "liste_classes", 
+          "param_connexion", 
+          "theme"
+        ], 
+        "type": "object", 
+        "properties": {
+          "theme": {
+            "type": "string", 
+            "description": "Nom du th\u00e8me auquel la liste de classe se r\u00e9f\u00e8re"
+          }, 
+          "format_fichier_data": {
+            "type": "string", 
+            "description": "Format du fichier en sortie", 
+            "enum": [
+              "GPKG", 
+              "FGDB"
+            ]
+          }, 
+          "courriel": {
+            "type": "string", 
+            "description": "Courriel pour transmettre des messages"
+          }, 
+          "liste_classes": {
+            "type": "array", 
+            "description": "Liste des noms de classe \u00e0 extraire", 
+            "items": {
+              "type": "string"
+            }
+          }, 
+          "clip": {
+            "type": "string", 
+            "description": "D\u00e9couper les donn\u00e9es aux limites de la zone d'extraction", 
+            "default": "NON", 
+            "enum": [
+              "OUI", 
+              "NON"
+            ]
+          }, 
+          "param_connexion": {
+            "$ref": "#/components/schemas/param_connexion_pgis"
+          }, 
+          "where_clause": {
+            "type": "string", 
+            "description": "Crit\u00e8re de s\u00e9lection optionnel"
+          }, 
+          "geom": {
+            "type": "string", 
+            "description": "G\u00e9om\u00e9trie, en GeoJSON, de la zone d'extraction"
+          }
+        }
+      }, 
+      "message_erreur": {
+        "title": "message_erreur", 
+        "type": "object", 
+        "properties": {
+          "message": {
+            "type": "string", 
+            "description": "Message d'erreur"
+          }, 
+          "exception": {
+            "type": "string", 
+            "description": "Nom de l'exception lanc\u00e9e"
+          }, 
+          "stack": {
+            "type": "array", 
+            "description": "S\u00e9quence des fichiers appel\u00e9s d'o\u00f9 provient l'erreur", 
+            "items": {
+              "type": "string"
+            }
+          }, 
+          "traceback": {
+            "type": "array", 
+            "description": "\"traceback\" python de l'exception", 
+            "items": {
+              "type": "string"
+            }
+          }
+        }, 
+        "x-examples": {
+          "exemple": {
+            "exception": "", 
+            "message": "", 
+            "stack": [
+              ""
+            ], 
+            "traceback": [
+              ""
+            ]
+          }
+        }
+      }, 
+      "message_succes": {
+        "title": "message_succes", 
+        "type": "object", 
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        }, 
+        "x-examples": {}
+      }, 
+      "metadata_creation": {
+        "title": "metadata_creation", 
+        "required": [
+          "id_ut", 
+          "nom_catalogue", 
+          "prod_desc", 
+          "theme"
+        ], 
+        "type": "object", 
+        "properties": {
+          "theme": {
+            "type": "string"
+          }, 
+          "id_ut": {
+            "type": "string"
+          }, 
+          "nom_catalogue": {
+            "type": "string"
+          }, 
+          "prod_desc": {
+            "type": "string"
+          }, 
+          "description_projet": {
+            "type": "string"
+          }, 
+          "logfile": {
+            "type": "string"
+          }, 
+          "liste_id_source": {
+            "maxItems": 8, 
+            "type": "array", 
+            "items": {
+              "type": "string"
+            }
+          }, 
+          "liste_id_precision": {
+            "maxItems": 3, 
+            "type": "array", 
+            "items": {
+              "type": "string"
+            }
+          }, 
+          "liste_id_contraintes_legales": {
+            "maxItems": 3, 
+            "type": "array", 
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }, 
+      "metadata_validation": {
+        "title": "metadata_validation", 
+        "type": "object", 
+        "properties": {
+          "fichier": {
+            "type": "string", 
+            "format": "binary"
+          }
+        }
+      }, 
+      "securite_reponse_login": {
+        "title": "securite_reponse_login", 
+        "type": "object", 
+        "properties": {
+          "access_token": {
+            "type": "string"
+          }, 
+          "token_type": {
+            "type": "string"
+          }, 
+          "expires_in": {
+            "type": "integer"
+          }, 
+          "scope": {
+            "type": "array", 
+            "items": {
+              "type": "string"
+            }
+          }, 
+          "theme": {
+            "type": "array", 
+            "items": {
+              "type": "string"
+            }
+          }, 
+          "equipe": {
+            "type": "array", 
+            "items": {
+              "type": "string"
+            }
+          }, 
+          "courriel": {
+            "type": "string"
+          }
+        }, 
+        "example": {
+          "access_token": "access_token", 
+          "scope": [
+            "scope", 
+            "scope"
+          ], 
+          "theme": [
+            "theme", 
+            "theme"
+          ], 
+          "token_type": "token_type", 
+          "expires_in": 0, 
+          "equipe": [
+            "equipe", 
+            "equipe"
+          ], 
+          "courriel": "courriel"
+        }, 
+        "x-examples": {}
+      }, 
+      "suivi_prod-code": {
+        "title": "suivi_prod-code", 
+        "type": "object", 
+        "properties": {
+          "id": {
+            "type": "integer"
+          }, 
+          "id_liste_code": {
+            "type": "integer"
+          }, 
+          "nom": {
+            "type": "string"
+          }, 
+          "desc_en": {
+            "type": "string"
+          }, 
+          "desc_fr": {
+            "type": "string"
+          }
+        }, 
+        "example": {
+          "desc_fr": "desc_fr", 
+          "id_liste_code": 6, 
+          "id": 0, 
+          "desc_en": "desc_en", 
+          "nom": "nom"
+        }
+      }, 
+      "suivi_prod-code_list": {
+        "title": "suivi_prod-code_list", 
+        "type": "object", 
+        "properties": {
+          "id": {
+            "type": "integer"
+          }, 
+          "nom": {
+            "type": "string"
+          }, 
+          "desc_en": {
+            "type": "string"
+          }, 
+          "desc_fr": {
+            "type": "string"
+          }
+        }, 
+        "example": {
+          "desc_fr": "desc_fr", 
+          "id": 0, 
+          "desc_en": "desc_en", 
+          "nom": "nom"
+        }
+      }, 
+      "suivi_prod-etape_sut": {
+        "title": "suivi_prod-etape_sut", 
+        "type": "object", 
+        "properties": {
+          "etampe": {
+            "type": "string"
+          }, 
+          "dt_c": {
+            "type": "string"
+          }, 
+          "dt_m": {
+            "type": "string"
+          }, 
+          "id": {
+            "type": "string"
+          }, 
+          "id_ut": {
+            "type": "string"
+          }, 
+          "nom_etape_cl": {
+            "type": "integer"
+          }, 
+          "description": {
+            "type": "string"
+          }, 
+          "operateur": {
+            "type": "string"
+          }, 
+          "date_debut": {
+            "type": "string"
+          }, 
+          "date_fin": {
+            "type": "string"
+          }, 
+          "statut_etape_cl": {
+            "type": "integer"
+          }, 
+          "id_sous_unite_travail": {
+            "type": "string"
+          }
+        }
+      }, 
+      "suivi_prod-etape_ut": {
+        "title": "suivi_prod-etape_ut", 
+        "type": "object", 
+        "properties": {
+          "etampe": {
+            "type": "string"
+          }, 
+          "dt_c": {
+            "type": "string"
+          }, 
+          "dt_m": {
+            "type": "string"
+          }, 
+          "id": {
+            "type": "string"
+          }, 
+          "id_unite_travail": {
+            "type": "string"
+          }, 
+          "nom_etape_cl": {
+            "type": "string"
+          }, 
+          "description": {
+            "type": "string"
+          }, 
+          "operateur": {
+            "type": "string"
+          }, 
+          "date_debut": {
+            "type": "string"
+          }, 
+          "date_fin": {
+            "type": "string"
+          }, 
+          "statut_etape_cl": {
+            "type": "string"
+          }, 
+          "info_suppl": {
+            "type": "object"
+          }
+        }, 
+        "example": {
+          "dt_m": "dt_m", 
+          "statut_etape_cl": "statut_etape_cl", 
+          "info_suppl": {}, 
+          "id_unite_travail": "id_unite_travail", 
+          "nom_etape_cl": "nom_etape_cl", 
+          "date_debut": "date_debut", 
+          "etampe": "etampe", 
+          "description": "description", 
+          "date_fin": "date_fin", 
+          "dt_c": "dt_c", 
+          "id": "id", 
+          "operateur": "operateur"
+        }
+      }, 
+      "suivi_prod-executant": {
+        "title": "suivi_prod-executant", 
+        "type": "object", 
+        "properties": {
+          "etampe": {
+            "type": "string"
+          }, 
+          "dt_c": {
+            "type": "string"
+          }, 
+          "dt_m": {
+            "type": "string"
+          }, 
+          "id": {
+            "type": "string"
+          }, 
+          "id_contractant": {
+            "type": "string"
+          }, 
+          "no_contrat": {
+            "type": "string"
+          }, 
+          "prix_contrat": {
+            "type": "number"
+          }
+        }
+      }, 
+      "suivi_prod-featuretype": {
+        "title": "suivi_prod-featuretype", 
+        "type": "object", 
+        "properties": {
+          "etampe": {
+            "type": "string"
+          }, 
+          "dt_c": {
+            "type": "string"
+          }, 
+          "dt_m": {
+            "type": "string"
+          }, 
+          "id": {
+            "type": "string"
+          }, 
+          "local_name": {
+            "type": "string"
+          }, 
+          "spatial_repres_type_pna": {
+            "type": "string"
+          }
+        }, 
+        "example": {
+          "dt_m": "dt_m", 
+          "spatial_repres_type_pna": "spatial_repres_type_pna", 
+          "etampe": "etampe", 
+          "dt_c": "dt_c", 
+          "id": "id", 
+          "local_name": "local_name"
+        }
+      }, 
+      "suivi_prod-lot-full_rel": {
+        "title": "suivi_prod-lot-full_rel", 
+        "type": "object", 
+        "properties": {
+          "lot": {
+            "$ref": "#/components/schemas/suivi_prod-lot-no_rel"
+          }, 
+          "relations": {
+            "$ref": "#/components/schemas/suivi_prodlotfull_rel_relations"
+          }
+        }
+      }, 
+      "suivi_prod-lot-no_rel": {
+        "title": "suivi_prod-lot-no_rel", 
+        "type": "object", 
+        "properties": {
+          "etampe": {
+            "type": "string"
+          }, 
+          "dt_c": {
+            "type": "string"
+          }, 
+          "dt_m": {
+            "type": "string"
+          }, 
+          "id": {
+            "type": "string"
+          }, 
+          "operateur": {
+            "type": "string"
+          }, 
+          "date_debut": {
+            "type": "string"
+          }, 
+          "date_fin": {
+            "type": "string"
+          }, 
+          "theme_cl": {
+            "type": "string"
+          }, 
+          "type_travail_cl": {
+            "type": "string"
+          }, 
+          "statut_lot_cl": {
+            "type": "string"
+          }
+        }
+      }, 
+      "suivi_prod-requete_sql": {
+        "title": "suivi_prod-requete_sql", 
+        "type": "object", 
+        "properties": {
+          "sql": {
+            "type": "string"
+          }
+        }
+      }, 
+      "suivi_prod-sous_unite_travail-full_rel": {
+        "title": "suivi_prod-sous_unite_travail-full_rel", 
+        "type": "object", 
+        "properties": {
+          "sous_unite_travail": {
+            "$ref": "#/components/schemas/suivi_prod-sous_unite_travail-no_rel"
+          }, 
+          "relation": {
+            "$ref": "#/components/schemas/suivi_prodsous_unite_travailfull_rel_relation"
+          }
+        }
+      }, 
+      "suivi_prod-sous_unite_travail-no_rel": {
+        "title": "suivi_prod-sous_unite_travail-no_rel", 
+        "type": "object", 
+        "properties": {
+          "etampe": {
+            "type": "string"
+          }, 
+          "dt_c": {
+            "type": "string"
+          }, 
+          "dt_m": {
+            "type": "string"
+          }, 
+          "id_lot": {
+            "type": "string"
+          }, 
+          "id_ut": {
+            "type": "string"
+          }, 
+          "date_prevue_fin": {
+            "type": "string"
+          }, 
+          "date_debut": {
+            "type": "string"
+          }, 
+          "date_fin": {
+            "type": "string"
+          }
+        }
+      }, 
+      "suivi_prod-unite_travail_2-full_rel": {
+        "title": "suivi_prod-unite_travail_2-full_rel", 
+        "type": "object", 
+        "properties": {
+          "unite_travail_2": {
+            "$ref": "#/components/schemas/suivi_prod-unite_travail_2-no_rel"
+          }, 
+          "relations": {
+            "$ref": "#/components/schemas/suivi_produnite_travail_2full_rel_relations"
+          }
+        }
+      }, 
+      "suivi_prod-unite_travail_2-no_rel": {
+        "title": "suivi_prod-unite_travail_2-no_rel", 
+        "type": "object", 
+        "properties": {
+          "etampe": {
+            "type": "string"
+          }, 
+          "dt_c": {
+            "type": "string"
+          }, 
+          "dt_m": {
+            "type": "string"
+          }, 
+          "id": {
+            "type": "string"
+          }, 
+          "id_lot": {
+            "type": "string"
+          }, 
+          "date_prevue_fin": {
+            "type": "string"
+          }, 
+          "date_debut": {
+            "type": "string"
+          }, 
+          "date_fin": {
+            "type": "string"
+          }, 
+          "where_clause": {
+            "type": "string"
+          }, 
+          "geom": {
+            "type": "string"
+          }
+        }
+      }, 
+      "suivi_prod-unite_travail_2-postbody": {
+        "title": "suivi_prod-unite_travail_2-postbody", 
+        "required": [
+          "geom", 
+          "id", 
+          "id_lot", 
+          "param_connexion"
+        ], 
+        "type": "object", 
+        "properties": {
+          "etampe": {
+            "type": "string"
+          }, 
+          "dt_c": {
+            "type": "string"
+          }, 
+          "dt_m": {
+            "type": "string"
+          }, 
+          "id": {
+            "type": "string"
+          }, 
+          "id_lot": {
+            "type": "string"
+          }, 
+          "date_prevue_fin": {
+            "type": "string"
+          }, 
+          "date_debut": {
+            "type": "string"
+          }, 
+          "date_fin": {
+            "type": "string"
+          }, 
+          "where_clause": {
+            "type": "string"
+          }, 
+          "geom": {
+            "type": "string"
+          }, 
+          "param_connexion": {
+            "$ref": "#/components/schemas/param_connexion_pgis"
+          }
+        }
+      }, 
+      "suivi_prod_planification": {
+        "title": "suivi_prod_planification", 
+        "required": [
+          "geom", 
+          "id_ut", 
+          "liste_classes", 
+          "param_connexion", 
+          "theme", 
+          "type_travail"
+        ], 
+        "type": "object", 
+        "properties": {
+          "theme": {
+            "type": "string"
+          }, 
+          "id_ut": {
+            "type": "string"
+          }, 
+          "type_travail": {
+            "type": "string"
+          }, 
+          "liste_classes": {
+            "type": "array", 
+            "items": {
+              "type": "string"
+            }
+          }, 
+          "date_fin_prevue": {
+            "type": "string"
+          }, 
+          "where_clause": {
+            "type": "string"
+          }, 
+          "geom": {
+            "type": "string"
+          }, 
+          "param_connexion": {
+            "$ref": "#/components/schemas/param_connexion_pgis"
+          }
+        }
+      }, 
+      "systeme_envs": {
+        "title": "systeme_envs", 
+        "type": "object", 
+        "properties": {
+          "envs": {
+            "type": "array", 
+            "items": {
+              "$ref": "#/components/schemas/systeme_envs_envs"
+            }
+          }
+        }, 
+        "example": {
+          "envs": [
+            {
+              "env": "env", 
+              "url": "url"
+            }, 
+            {
+              "env": "env", 
+              "url": "url"
+            }
+          ]
+        }
+      }, 
+      "systeme_fichier": {
+        "title": "systeme_fichier", 
+        "type": "object", 
+        "properties": {
+          "fichier": {
+            "type": "string", 
+            "format": "binary"
+          }
+        }
+      }, 
+      "systeme_liste_contenants_fichiers": {
+        "title": "systeme_liste_contenants_fichiers", 
+        "type": "object", 
+        "properties": {
+          "list_file": {
+            "type": "array", 
+            "items": {
+              "$ref": "#/components/schemas/systeme_liste_contenants_fichiers_list_file"
+            }
+          }, 
+          "list_folder": {
+            "type": "array", 
+            "items": {
+              "$ref": "#/components/schemas/systeme_liste_contenants_fichiers_list_folder"
+            }
+          }
+        }, 
+        "example": {
+          "list_folder": [
+            {
+              "name": "name", 
+              "last_modified": "last_modified"
+            }, 
+            {
+              "name": "name", 
+              "last_modified": "last_modified"
+            }
+          ], 
+          "list_file": [
+            {
+              "size": 0, 
+              "name": "name", 
+              "last_modified": "last_modified"
+            }, 
+            {
+              "size": 0, 
+              "name": "name", 
+              "last_modified": "last_modified"
+            }
+          ]
+        }
+      }, 
+      "systeme_ress_requete": {
+        "title": "systeme_ress_requete", 
+        "type": "object", 
+        "properties": {
+          "fichiers": {
+            "type": "array", 
+            "description": "Liste des fichiers \u00e0 lire", 
+            "example": "\"pro/general/res.xml\",\"tst/hydro/resshydro.json\"", 
+            "items": {
+              "type": "string"
+            }
+          }, 
+          "chemin_recherche": {
+            "type": "array", 
+            "description": "Liste des chemins \u00e0 chercher dans les fichiers", 
+            "example": "\"apps/fme\",\"/bd/prod/params\"", 
+            "items": {
+              "type": "string"
+            }
+          }, 
+          "cle_gsh": {
+            "type": "string"
+          }
+        }, 
+        "description": "Corps de l'appel REST pour extraire des ressources", 
+        "x-examples": {}
+      }, 
+      "systeme_ress_retour": {
+        "title": "systeme_ress_retour", 
+        "type": "object", 
+        "properties": {
+          "<chemin>": {
+            "$ref": "#/components/schemas/systeme_ress_retour_chemin"
+          }
+        }, 
+        "description": "Corps de la r\u00e9ponse de l'appel REST d'extraction de ressources", 
+        "example": {
+          "<chemin>": "\"apps/fme\""
+        }, 
+        "x-examples": {}
+      }, 
+      "usager": {
+        "title": "usager", 
+        "type": "object", 
+        "properties": {
+          "nom": {
+            "type": "string"
+          }, 
+          "mot_de_passe": {
+            "type": "string"
+          }, 
+          "scopes": {
+            "type": "array", 
+            "items": {
+              "type": "string"
+            }
+          }, 
+          "equipes": {
+            "type": "array", 
+            "items": {
+              "type": "string"
+            }
+          }, 
+          "themes": {
+            "type": "array", 
+            "items": {
+              "type": "string"
+            }
+          }, 
+          "cle_aws_id": {
+            "type": "string"
+          }
+        }
+      }, 
+      "systeme_cryptage_decryptage_requete": {
+        "title": "systeme_cryptage_decryptage_requete", 
+        "required": [
+          "cle_gsh", 
+          "texte"
+        ], 
+        "type": "object", 
+        "properties": {
+          "texte": {
+            "type": "string"
+          }, 
+          "cle_gsh": {
+            "type": "string"
+          }
+        }, 
+        "description": "Corps de l'appel REST pour le cryptage et le d\u00e9cryptage de texte."
+      }, 
+      "systeme_cryptage_decryptage_retour": {
+        "title": "systeme_cryptage_decryptage_retour", 
+        "type": "object", 
+        "properties": {
+          "texte": {
+            "type": "string"
+          }
+        }, 
+        "description": "Corps de la r\u00e9ponse de l'appel REST du cryptage et d\u00e9cryptage de texte.", 
+        "example": {
+          "texte": "texte"
+        }, 
+        "x-examples": {}
+      }, 
+      "systeme_crypto_cle_gsh_retour": {
+        "title": "systeme_crypto_cle_gsh_retour", 
+        "type": "object", 
+        "properties": {
+          "cle_gsh": {
+            "type": "string"
+          }
+        }, 
+        "description": "Corps de la r\u00e9ponse pour la cr\u00e9ation de la cl\u00e9 gsh", 
+        "example": {
+          "cle_gsh": "cle_gsh"
+        }
+      }, 
+      "systeme_crypto_cle_gsh_requete": {
+        "title": "systeme_crypto_cle_gsh_requete", 
+        "required": [
+          "texte"
+        ], 
+        "type": "object", 
+        "properties": {
+          "texte": {
+            "type": "string"
+          }
+        }, 
+        "description": "Corps de l'appel REST pour la cr\u00e9ation de la cl\u00e9 gsh"
+      }, 
+      "systeme_tache_requete": {
+        "title": "systeme_tache_requete", 
+        "type": "object", 
+        "properties": {
+          "statut": {
+            "type": "string", 
+            "description": "Statut de la t\u00e2che"
+          }, 
+          "id_groupe": {
+            "type": "string", 
+            "description": "Groupe de la t\u00e2che"
+          }, 
+          "no_seq": {
+            "type": "integer", 
+            "description": "Num\u00e9ro s\u00e9quentiel de la t\u00e2che dans le groupe"
+          }, 
+          "categorie": {
+            "type": "string", 
+            "description": "Cat\u00e9gorie de la t\u00e2che"
+          }, 
+          "sous_categorie": {
+            "type": "string", 
+            "description": "Cat\u00e9gorie secondaire de la t\u00e2che"
+          }, 
+          "commande": {
+            "type": "string", 
+            "description": "Commande de d\u00e9marrage de la t\u00e2che"
+          }, 
+          "process_id": {
+            "type": "string", 
+            "description": "Identifiant de la t\u00e2che pendant son ex\u00e9cution"
+          }, 
+          "process_agent": {
+            "type": "string", 
+            "description": "Agent d'ex\u00e9cution de la t\u00e2che"
+          }, 
+          "equipe": {
+            "type": "string", 
+            "description": "\u00c9quipe de la t\u00e2che"
+          }, 
+          "env": {
+            "type": "string", 
+            "description": "Environnement de travail"
+          }, 
+          "courriel": {
+            "type": "string", 
+            "description": "Destinataire des courriels associ\u00e9s \u00e0 la t\u00e2che"
+          }, 
+          "info_json": {
+            "type": "object", 
+            "description": "Informations suppl\u00e9mentaires de la t\u00e2che en format json"
+          }, 
+          "info_texte": {
+            "type": "string", 
+            "description": "Informations suppl\u00e9mentaires de la t\u00e2che en format texte"
+          }, 
+          "note": {
+            "type": "string", 
+            "description": "Note"
+          }, 
+          "info_suppl": {
+            "type": "object", 
+            "description": "Information suppl\u00e9mentaire de la t\u00e2che pour les d\u00e9mons. Ce champ est r\u00e9serv\u00e9 pour l'API."
+          }, 
+          "token": {
+            "type": "string", 
+            "description": "Token pour la gestion de la t\u00e2che dans l'API. Ce champ est r\u00e9serv\u00e9 pour l'API."
+          }, 
+          "systeme": {
+            "type": "boolean", 
+            "description": "Fanion indiquant que la t\u00e2che a \u00e9t\u00e9 g\u00e9n\u00e9r\u00e9e par l'API ou non"
+          }
+        }, 
+        "description": "Corps de l'appel REST pour ins\u00e9rer une t\u00e2che dans la table des t\u00e2ches"
+      }, 
+      "systeme_tache_retour": {
+        "title": "systeme_tache_retour", 
+        "type": "object", 
+        "properties": {
+          "id": {
+            "type": "string", 
+            "description": "Identifiant unique de la t\u00e2che"
+          }
+        }, 
+        "description": "Corps de la r\u00e9ponse de l'appel REST d'insertion de t\u00e2che", 
+        "example": {
+          "id": "id"
+        }, 
+        "x-examples": {}
+      }, 
+      "systeme_tache_id_requete": {
+        "title": "systeme_tache_id_requete", 
+        "type": "object", 
+        "properties": {
+          "id_groupe": {
+            "type": "string", 
+            "description": "Groupe de la t\u00e2che"
+          }, 
+          "no_seq": {
+            "type": "integer", 
+            "description": "Num\u00e9ro s\u00e9quentiel de la t\u00e2che dans le groupe"
+          }, 
+          "categorie": {
+            "type": "string", 
+            "description": "Cat\u00e9gorie de la t\u00e2che"
+          }, 
+          "sous_categorie": {
+            "type": "string", 
+            "description": "Cat\u00e9gorie secondaire de la t\u00e2che"
+          }, 
+          "commande": {
+            "type": "string", 
+            "description": "Commande de d\u00e9marrage de la t\u00e2che"
+          }, 
+          "process_id": {
+            "type": "string", 
+            "description": "Identifiant de la t\u00e2che pendant son ex\u00e9cution"
+          }, 
+          "process_agent": {
+            "type": "string", 
+            "description": "Agent d'ex\u00e9cution de la t\u00e2che"
+          }, 
+          "equipe": {
+            "type": "string", 
+            "description": "\u00c9quipe de la t\u00e2che"
+          }, 
+          "env": {
+            "type": "string", 
+            "description": "Environnement de travail"
+          }, 
+          "courriel": {
+            "type": "string", 
+            "description": "Destinataire des courriels associ\u00e9s \u00e0 la t\u00e2che"
+          }, 
+          "info_json": {
+            "type": "object", 
+            "description": "Informations suppl\u00e9mentaires de la t\u00e2che en format json"
+          }, 
+          "info_texte": {
+            "type": "string", 
+            "description": "Informations suppl\u00e9mentaires de la t\u00e2che en format texte"
+          }, 
+          "note": {
+            "type": "string", 
+            "description": "Commentaire sur la t\u00e2che"
+          }, 
+          "info_suppl": {
+            "type": "object", 
+            "description": "Information suppl\u00e9mentaire de la t\u00e2che pour les d\u00e9mons"
+          }, 
+          "token": {
+            "type": "string", 
+            "description": "Token pour la gestion de la t\u00e2che dans l'API"
+          }
+        }, 
+        "description": "Corps de l'appel REST pour la mise \u00e0 jour d'une t\u00e2che dans la table des t\u00e2ches"
+      }, 
+      "systeme_tache_id_retour": {
+        "title": "systeme_tache_id_retour", 
+        "type": "object", 
+        "properties": {
+          "id": {
+            "type": "string", 
+            "description": "Identifiant unique de la t\u00e2che"
+          }
+        }, 
+        "description": "Corps de la r\u00e9ponse de l'appel REST de la mise \u00e0 jour d'une t\u00e2che"
+      }, 
+      "systeme_taches_retour": {
+        "title": "systeme_taches_retour", 
+        "type": "object", 
+        "properties": {
+          "taches": {
+            "type": "array", 
+            "description": "Informations de la t\u00e2che", 
+            "items": {
+              "type": "object"
+            }
+          }
+        }, 
+        "description": "Corps de la r\u00e9ponse de l'appel REST de la liste des t\u00e2ches", 
+        "example": {
+          "taches": [
+            {}, 
+            {}
+          ]
+        }
+      }, 
+      "systeme_tache_info": {
+        "title": "systeme_tache_info", 
+        "type": "object", 
+        "properties": {
+          "id": {
+            "type": "string", 
+            "description": "Identifiant unique de la t\u00e2che"
+          }, 
+          "valide": {
+            "type": "boolean", 
+            "description": "Fanion indiquant si la t\u00e2che est valide ou non"
+          }, 
+          "statut": {
+            "type": "string", 
+            "description": "Statut de la t\u00e2che"
+          }, 
+          "id_groupe": {
+            "type": "string", 
+            "description": "Groupe de la t\u00e2che"
+          }, 
+          "no_seq": {
+            "type": "integer", 
+            "description": "Num\u00e9ro s\u00e9quentiel de la t\u00e2che dans le groupe"
+          }, 
+          "categorie": {
+            "type": "string", 
+            "description": "Cat\u00e9gorie de la t\u00e2che"
+          }, 
+          "sous_categorie": {
+            "type": "string", 
+            "description": "Cat\u00e9gorie secondaire de la t\u00e2che"
+          }, 
+          "commande": {
+            "type": "string", 
+            "description": "Commande de d\u00e9marrage de la t\u00e2che"
+          }, 
+          "process_id": {
+            "type": "string", 
+            "description": "Identifiant de la t\u00e2che pendant son ex\u00e9cution"
+          }, 
+          "process_agent": {
+            "type": "string", 
+            "description": "Agent d'ex\u00e9cution de la t\u00e2che"
+          }, 
+          "equipe": {
+            "type": "string", 
+            "description": "\u00c9quipe de la t\u00e2che"
+          }, 
+          "env": {
+            "type": "string", 
+            "description": "Environnement de travail"
+          }, 
+          "courriel": {
+            "type": "string", 
+            "description": "Destinataire des courriels associ\u00e9s \u00e0 la t\u00e2che"
+          }, 
+          "info_json": {
+            "type": "object", 
+            "description": "Informations suppl\u00e9mentaires de la t\u00e2che en format json"
+          }, 
+          "info_texte": {
+            "type": "string", 
+            "description": "Informations suppl\u00e9mentaires de la t\u00e2che en format texte"
+          }, 
+          "note": {
+            "type": "string", 
+            "description": "Commentaire sur la t\u00e2che"
+          }, 
+          "info_suppl": {
+            "type": "object", 
+            "description": "Information suppl\u00e9mentaire de la t\u00e2che pour les d\u00e9mons"
+          }, 
+          "token": {
+            "type": "string", 
+            "description": "Token pour la gestion de la t\u00e2che dans l'API"
+          }, 
+          "systeme": {
+            "type": "boolean", 
+            "description": "Fanion indiquant que la t\u00e2che a \u00e9t\u00e9 g\u00e9n\u00e9r\u00e9e par l'API ou non"
+          }
+        }, 
+        "description": "Informations d'une t\u00e2che GeoSys", 
+        "example": {
+          "process_agent": "process_agent", 
+          "process_id": "process_id", 
+          "note": "note", 
+          "categorie": "categorie", 
+          "info_suppl": {}, 
+          "sous_categorie": "sous_categorie", 
+          "info_texte": "info_texte", 
+          "systeme": true, 
+          "valide": true, 
+          "commande": "commande", 
+          "env": "env", 
+          "courriel": "courriel", 
+          "token": "token", 
+          "id": "id", 
+          "equipe": "equipe", 
+          "info_json": {}, 
+          "statut": "statut", 
+          "id_groupe": "id_groupe", 
+          "no_seq": 0
+        }, 
+        "x-examples": {
+          "Exemple": {
+            "id": "GST33", 
+            "valide": true, 
+            "statut": "ACTIF", 
+            "id_groupe": "123", 
+            "no_seq": 1, 
+            "categorie": "FME", 
+            "sous_categorie": "API", 
+            "commande": "https://s-she-fmetst:8080/systeme/lancer/par=234", 
+            "process_id": "123", 
+            "process_agent": "s-she-fmetst:8080", 
+            "equipe": "RHN", 
+            "env": "DEV", 
+            "courriel": "", 
+            "info_json": {}, 
+            "info_texte": "", 
+            "note": "Test de lancement"
+          }
+        }
+      }, 
+      "systeme_taches_requete": {
+        "title": "systeme_taches_requete", 
+        "type": "object", 
+        "properties": {
+          "sql": {
+            "pattern": "(?i)^SELECT.*", 
+            "type": "string", 
+            "description": "Requ\u00eate SQL"
+          }
+        }, 
+        "description": "Corps de l'appel REST pour extraire les informations des t\u00e2ches"
+      }, 
+      "systeme_tache_groupe_statut_retour": {
+        "title": "systeme_tache_groupe_statut_retour", 
+        "type": "object", 
+        "properties": {
+          "id": {
+            "type": "string", 
+            "description": "Id de la t\u00e2che du groupe dont le statut a \u00e9t\u00e9 mis \u00e0 jour"
+          }, 
+          "retour": {
+            "type": "integer", 
+            "description": "Code de retour de la mise \u00e0 jour du statut de la t\u00e2che du groupe"
+          }, 
+          "message": {
+            "type": "string", 
+            "description": "Message d'ex\u00e9cution de la mise \u00e0 jour du statut de la t\u00e2che du groupe"
+          }, 
+          "reste": {
+            "type": "integer", 
+            "description": "Nombre de t\u00e2ches qui ne sont pas trait\u00e9es dans le groupe"
+          }
+        }, 
+        "description": "Corps de la r\u00e9ponse de l'appel REST de la mise \u00e0 jour du statut de la t\u00e2che d'un groupe", 
+        "example": {
+          "retour": 0, 
+          "reste": 6, 
+          "id": "id", 
+          "message": "message"
+        }
+      }, 
+      "metadata_livraison": {
+        "title": "metadata_livraison", 
+        "type": "object", 
+        "properties": {
+          "maj_etendue": {
+            "type": "string", 
+            "default": "Non", 
+            "enum": [
+              "Oui", 
+              "Non"
+            ]
+          }, 
+          "fichier": {
+            "type": "string", 
+            "format": "binary"
+          }
+        }
+      }, 
+      "param_connexion_pgis": {
+        "title": "param_connexion_pgis", 
+        "required": [
+          "dbname", 
+          "host", 
+          "password", 
+          "port", 
+          "schema", 
+          "type_conn", 
+          "username"
+        ], 
+        "type": "object", 
+        "properties": {
+          "host": {
+            "type": "string", 
+            "description": "Nom ou adresse IP du serveur"
+          }, 
+          "dbname": {
+            "type": "string", 
+            "description": "Nom de la base de donn\u00e9e"
+          }, 
+          "username": {
+            "type": "string", 
+            "description": "Nom de l'usager"
+          }, 
+          "password": {
+            "type": "string", 
+            "description": "Mot de passe"
+          }, 
+          "port": {
+            "type": "string", 
+            "description": "Num\u00e9ro du port d'\u00e9coute de la BD"
+          }, 
+          "schema": {
+            "type": "string", 
+            "description": "Nom du sch\u00e9ma propri\u00e9taire des donn\u00e9es"
+          }, 
+          "type_conn": {
+            "type": "string", 
+            "description": "Type de connexion. Une seul valeur possible: PGIS", 
+            "enum": [
+              "PGIS"
+            ]
+          }
+        }
+      }, 
+      "param_connexion_toto": {
+        "title": "param_connexion_toto", 
+        "required": [
+          "host", 
+          "id", 
+          "type_conn"
+        ], 
+        "type": "object", 
+        "properties": {
+          "id": {
+            "type": "string"
+          }, 
+          "host": {
+            "type": "string"
+          }, 
+          "type_conn": {
+            "type": "string", 
+            "enum": [
+              "TOTO"
+            ]
+          }
+        }
+      }, 
+      "systeme_liste_nouveaux_fichiers_retour": {
+        "title": "systeme_liste_nouveaux_fichiers_retour", 
+        "type": "object", 
+        "properties": {
+          "fichiers": {
+            "type": "array", 
+            "description": "Liste des fichiers trouv\u00e9s", 
+            "items": {
+              "type": "string"
+            }
+          }, 
+          "chemin_existe": {
+            "type": "boolean", 
+            "description": "Fanion indiquant si le chemin sp\u00e9cifi\u00e9 existe ou non"
+          }
+        }, 
+        "description": "Corps de la r\u00e9ponse de l'appel REST de la liste des nouveaux fichiers dans un dossier S3"
+      }, 
+      "systeme_metadonnee_fichier_retour": {
+        "title": "systeme_metadonnee_fichier_retour", 
+        "type": "object", 
+        "description": "Corps de la r\u00e9ponse de l'appel REST de metadonn\u00e9es de fichier S3", 
+        "x-tags": [
+          "systeme"
+        ]
+      }, 
+      "systeme_metadonnee_fichier_delete": {
+        "title": "systeme_metadonnee_fichier_delete", 
+        "type": "object", 
+        "properties": {
+          "liste_cles": {
+            "type": "array", 
+            "items": {
+              "type": "string"
+            }
+          }
+        }, 
+        "description": "Corps de l'appel REST de destruction de cl\u00e9s de metadonn\u00e9es de fichier S3", 
+        "x-tags": [
+          "systeme"
+        ]
+      }, 
+      "systeme_metadonnee_fichier_maj_ins": {
+        "title": "systeme_metadonnee_fichier_maj_ins", 
+        "type": "object", 
+        "description": "Corps de de l'appel REST de mise \u00e0 jour/insertion de cl\u00e9s de metadonn\u00e9es de fichier S3", 
+        "x-tags": [
+          "systeme"
+        ], 
+        "x-examples": {
+          "example-1": {}
+        }
+      }, 
+      "data_livrer": {
+        "title": "data_livrer", 
+        "required": [
+          "fichier_data", 
+          "format_fichier_data", 
+          "geom", 
+          "liste_classes", 
+          "param_connexion", 
+          "theme"
+        ], 
+        "type": "object", 
+        "properties": {
+          "theme": {
+            "type": "string"
+          }, 
+          "courriel": {
+            "type": "string"
+          }, 
+          "md_id": {
+            "type": "string"
+          }, 
+          "liste_classes": {
+            "type": "array", 
+            "items": {
+              "type": "string"
+            }
+          }, 
+          "where_clause": {
+            "type": "string"
+          }, 
+          "param_connexion": {
+            "$ref": "#/components/schemas/param_connexion_pgis"
+          }, 
+          "format_fichier_data": {
+            "type": "string", 
+            "enum": [
+              "GPKG", 
+              "FGDB"
+            ]
+          }, 
+          "fichier_data": {
+            "type": "string", 
+            "format": "binary"
+          }, 
+          "fichier_meta": {
+            "type": "string", 
+            "format": "binary"
+          }, 
+          "geom": {
+            "type": "string"
+          }
+        }
+      }, 
+      "ReturnValueBasicErrorMessage": {
+        "title": "ReturnValue-BasicErrorMessage", 
+        "type": "object", 
+        "properties": {
+          "code": {
+            "type": "string"
+          }, 
+          "message": {
+            "type": "string"
+          }
+        }
+      }, 
+      "inline_response_200": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/suivi_prod-lot-full_rel"
+          }, 
+          {
+            "$ref": "#/components/schemas/suivi_prod-lot-no_rel"
+          }
+        ]
+      }, 
+      "inline_response_200_1": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/suivi_prod-unite_travail_2-no_rel"
+          }, 
+          {
+            "$ref": "#/components/schemas/suivi_prod-unite_travail_2-full_rel"
+          }
+        ]
+      }, 
+      "suivi_prodlotfull_rel_relations": {
+        "type": "object", 
+        "properties": {
+          "executant": {
+            "$ref": "#/components/schemas/suivi_prod-executant"
+          }, 
+          "unite_travail_2": {
+            "type": "array", 
+            "items": {
+              "$ref": "#/components/schemas/suivi_prod-unite_travail_2-full_rel"
+            }
+          }, 
+          "feature_type": {
+            "type": "array", 
+            "items": {
+              "$ref": "#/components/schemas/suivi_prod-featuretype"
+            }
+          }
+        }
+      }, 
+      "suivi_prodsous_unite_travailfull_rel_relation": {
+        "type": "object", 
+        "properties": {
+          "etape_sut": {
+            "type": "array", 
+            "items": {
+              "$ref": "#/components/schemas/suivi_prod-etape_sut"
+            }
+          }
+        }
+      }, 
+      "suivi_produnite_travail_2full_rel_relations": {
+        "type": "object", 
+        "properties": {
+          "etape_ut": {
+            "type": "array", 
+            "items": {
+              "$ref": "#/components/schemas/suivi_prod-etape_ut"
+            }
+          }, 
+          "sous_unite_travail": {
+            "type": "array", 
+            "items": {
+              "$ref": "#/components/schemas/suivi_prod-sous_unite_travail-full_rel"
+            }
+          }
+        }
+      }, 
+      "systeme_envs_envs": {
+        "type": "object", 
+        "properties": {
+          "env": {
+            "type": "string"
+          }, 
+          "url": {
+            "type": "string"
+          }
+        }, 
+        "example": {
+          "env": "env", 
+          "url": "url"
+        }
+      }, 
+      "systeme_liste_contenants_fichiers_list_file": {
+        "type": "object", 
+        "properties": {
+          "name": {
+            "type": "string"
+          }, 
+          "size": {
+            "type": "integer"
+          }, 
+          "last_modified": {
+            "type": "string"
+          }
+        }, 
+        "example": {
+          "size": 0, 
+          "name": "name", 
+          "last_modified": "last_modified"
+        }
+      }, 
+      "systeme_liste_contenants_fichiers_list_folder": {
+        "type": "object", 
+        "properties": {
+          "name": {
+            "type": "string"
+          }, 
+          "last_modified": {
+            "type": "string"
+          }
+        }, 
+        "example": {
+          "name": "name", 
+          "last_modified": "last_modified"
+        }
+      }, 
+      "systeme_ress_retour_chemin": {
+        "type": "object", 
+        "properties": {
+          "source": {
+            "type": "string", 
+            "description": "Fichier dans lequel la valeur a \u00e9t\u00e9 trouv\u00e9e", 
+            "example": "\"pro/general/res.xml\""
+          }, 
+          "value": {
+            "type": "string", 
+            "description": "Cha\u00eene de caract\u00e8res ou objet JSON", 
+            "example": "\"%FME2020%\""
+          }
+        }, 
+        "description": "&lt;chemin&gt; est dynamique. Il s'agit du chemin sp\u00e9cifi\u00e9 lors de l'appel", 
+        "example": "\"apps/fme\""
+      }
+    }, 
+    "securitySchemes": {
+      "geosys_bearer": {
+        "type": "apiKey", 
+        "description": "Dans le champ **Value**, inscrire **'Bearer &lt;JWT&gt;'** o\u00f9 &lt;JWT&gt; est la valeur de **access_token** obtenue par l'appel de /securite/login", 
+        "name": "Authorization", 
+        "in": "header", 
+        "x-apikeyInfoFunc": "swagger_server.controllers.authorization_controller.check_geosys_bearer"
+      }, 
+      "geosys_auth": {
+        "type": "oauth2", 
+        "flows": {
+          "implicit": {
+            "authorizationUrl": "http://geosys/api/oauth/dialog", 
+            "scopes": {
+              "write": "Ajouter ou modifier l'information", 
+              "read": "Lire l'information", 
+              "delete": "Effacer l'information", 
+              "admin": "Tous les droits"
+            }
+          }
+        }, 
+        "x-tokenInfoFunc": "swagger_server.controllers.authorization_controller.check_geosys_auth", 
+        "x-scopeValidateFunc": "swagger_server.controllers.authorization_controller.validate_scope_geosys_auth"
+      }
+    }
+  }
+}
